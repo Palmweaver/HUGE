@@ -1,0 +1,27 @@
+# SQLite version 3.x
+#   gem install sqlite3
+#
+#   Ensure the SQLite 3 gem is defined in your Gemfile
+#   gem 'sqlite3'
+#
+default: &default
+  adapter: sqlite3
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
+
+development:
+  <<: *default
+  database: db/development.sqlite3
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: db/test.sqlite3
+
+production:  
+  adapter: postgresql
+  url: <%= ENV['postgresql://db_app:af0097929dc73dd733491da3a4ddaf34b7d8292159a75dbfa378bd0313129e33@postgres:5432/db_app'] %> #This is the environment variable created by our Dokku command earlier
+  encoding: unicode
+  pool: 5
