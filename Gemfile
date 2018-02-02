@@ -1,4 +1,5 @@
 source 'https://rubygems.org'
+ruby "2.3.4"
 
 git_source(:github) do |repo_name|
   repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?("/")
@@ -25,6 +26,17 @@ gem 'turbolinks', '~> 5'
 gem 'jbuilder', '~> 2.5'
 gem 'rails_12factor', group: :production #rails library tuned to run smoothly on Heroku/Dokku cloud infrastructures
 gem 'pg' #postgres gem
+gem 'rails-i18n', '~> 5.0.0' # For 5.0.x and 5.1.x
+gem 'devise', '~> 4.3.0'
+gem 'jquery-rails'
+gem 'bootstrap', '~> 4.0.0.alpha6'
+gem 'activeadmin', '~> 1.0'
+gem 'paperclip', "~> 5.0.0"
+gem 'rails_db', '~> 1.6.0'
+gem 'devise-i18n', '~> 1.1.2'
+gem 'cancancan', '~> 2.0'
+# Use Puma as the app server
+gem 'gon', '~> 6.2'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 3.0'
 # Use ActiveModel has_secure_password
@@ -50,5 +62,4 @@ group :development do
   gem 'spring-watcher-listen', '~> 2.0.0'
 end
 
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+
