@@ -1,0 +1,14 @@
+{
+  "name": "app",
+  "description": "Test Boilerplate for auto DB migration on deploy",
+  "keywords": [
+    "dokku",
+    "rails",
+    "shrewdpixel.com"
+  ],
+  "scripts": {
+    "dokku": {
+      "postdeploy": "bundle exec rake db:migrate db:seed"
+    }
+  }
+}
