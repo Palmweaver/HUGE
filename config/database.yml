@@ -10,6 +10,6 @@ development:
 
 production:  
   adapter: postgresql
-  url: <%= ENV['postgresql://db_qcs:f1b3bf57c9d6dd27c38f4f3a57a961595f7a7cc88d72406f87002aa2f9eb79c3@postgres:5432/db_qcs'] %> #This is the environment variable created by our Dokku command earlier
+  url: <%= ENV['postgresql://db_app:2f129ac5cbe60cc8701b1c7b598d34f2d32895ca809a676e6d3cf5c7b96256c9@postgres:5432/db_app'] %> #This is the environment variable created by our Dokku command earlier
   encoding: unicode
   pool: 5
