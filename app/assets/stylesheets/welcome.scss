@@ -12,15 +12,15 @@
     width: 125%;
     height: 125%;
    
-    -webkit-animation:spincurt 6s ease-out 1;
-    -moz-animation:spincurt 6s ease-out 1;
-    animation:spincurt 6s ease-out 1;
+    -webkit-animation:spincurt 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
+    -moz-animation:spincurt 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
+    animation:spincurt 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
 }
 
 
 @-webkit-keyframes spincurt {
   from {
-    transform: rotate(300deg) scale3D(3, 3, 1); 
+    transform: rotate(320deg) scale3D(3, 3, 1); 
     transform-origin: 50% 50%;
   }
   to {
@@ -32,18 +32,19 @@
 
 @-webkit-keyframes scale {
   from {
-    transform: scale3D(8.0, 8.0, 1);
+    transform: scale3D(3.0, 3.0, 1) translateY(-500px);
     transform-origin: 50% 50%;
+
   }
   to {
-    transform: scale3D(1, 1, 1);
+    transform: scale3D(1, 1, 1) translateY(0px);
     transform-origin: 50% 50%;
   }
 }
 @-webkit-keyframes scale2 {
-  0%   {transform: scale3D(8.0, 8.0, 1); transform-origin: 50% 50%; opacity: 0;}
-  80%  {transform: scale3D(8.0, 8.0, 1); transform-origin: 50% 50%; opacity: 0;}
-  100% {transform: scale3D(1, 1, 1); transform-origin: 50% 50%; opacity: 1;}
+  0%   {transform: scale3D(3.0, 3.0, 1) translateY(500px); transform-origin: 50% 50%; opacity: 0;}
+  60%  {transform: scale3D(3.0, 3.0, 1) translateY(500px); transform-origin: 50% 50%; opacity: 0;}
+  100% {transform: scale3D(1, 1, 1) translateY(0px); transform-origin: 50% 50%; opacity: 1;}
 }
 
 .centertext {
@@ -53,21 +54,29 @@
   left: 25%;
   width: 50%;
   height: 50%;
-  animation:scale 6s ease-out 1;
   text-align: center;
   justify-content: center; /* align horizontal */
   align-items: center; 
-  font-size: 1000%;
+  
   padding: 0px;
   margin: 0px;
   font-family: 'Bitter', serif;
-
 }
+
+.centertext1 {
+  
+  animation:scale 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
+  font-size: 10em;
+  padding: 0px;
+  margin: 0px;
+  
+}
+
 
 .centertext2 {
 
-  animation:scale2 6.5s ease-out 1;
-  font-size: 80%;
+  animation:scale2 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
+  font-size: 8em;
   
   padding: 0px;
   margin: 0px;
@@ -120,7 +129,11 @@ body{
   top:0;
  }
 
-
+.js-loading *,
+.js-loading *:before,
+.js-loading *:after {
+  animation-play-state: paused !important;
+}
 
 
 

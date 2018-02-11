@@ -1,9 +1,9 @@
 <div class="curtain">
   <div class="centertext">
-    <p>SHREWD</p>
+    <p  class="centertext1">SHREWD</p>
     
 
-    <p class="centertext2">pixel</p>
+    <p class="centertext2">PIXEL</p>
   </div>
 </div>
 
@@ -20,5 +20,13 @@ window.addEventListener('load', function(){
   overlay.style.display = 'none';
 })
 
+
+document.body.classList.add('js-loading');
+
+window.addEventListener("load", showPage);
+
+function showPage() {
+  document.body.classList.remove('js-loading');
+}
 
 </script>
