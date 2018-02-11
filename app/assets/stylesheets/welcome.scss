@@ -4,25 +4,35 @@
 
 .curtain {
   position: absolute;
-  background-image: url("/map.gif");
-  background-size: contain;
+  background-image: url("/midmap.jpg");
+  background-size: 200%;
     background-color: #fefbd8;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
+    top: -13%;
+    left: -13%;
+    width: 125%;
+    height: 125%;
    
-    -webkit-animation:spin 6s linear 1;
-    -moz-animation:spin 6s linear 1;
-    animation:spin 6s linear 1;
+    -webkit-animation:spincurt 6s ease-out 1;
+    -moz-animation:spincurt 6s ease-out 1;
+    animation:spincurt 6s ease-out 1;
 }
-@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); transform-origin: 50% 50%; } }
-@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); transform-origin: 50% 50%;} }
-@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); transform-origin: 50% 50%;} }
+
+
+@-webkit-keyframes spincurt {
+  from {
+    transform: rotate(300deg) scale3D(3, 3, 1); 
+    transform-origin: 50% 50%;
+  }
+  to {
+    transform: rotate(360deg) scale3D(1, 1, 1); 
+    transform-origin: 50% 50%;
+  }
+}
+
 
 @-webkit-keyframes scale {
   from {
-    transform: scale3D(12.0, 12.0, 1);
+    transform: scale3D(8.0, 8.0, 1);
     transform-origin: 50% 50%;
   }
   to {
@@ -30,28 +40,42 @@
     transform-origin: 50% 50%;
   }
 }
+@-webkit-keyframes scale2 {
+  0%   {transform: scale3D(8.0, 8.0, 1); transform-origin: 50% 50%; opacity: 0;}
+  80%  {transform: scale3D(8.0, 8.0, 1); transform-origin: 50% 50%; opacity: 0;}
+  100% {transform: scale3D(1, 1, 1); transform-origin: 50% 50%; opacity: 1;}
+}
 
 .centertext {
-  background:rgba(0, 0, 0, 0.3);
+  background:rgba(0, 0, 0, 0.0);
   position: absolute;
   top: 25%;
   left: 25%;
   width: 50%;
   height: 50%;
-  animation:scale 6s linear 1;
+  animation:scale 6s ease-out 1;
   text-align: center;
-  display: flex;
   justify-content: center; /* align horizontal */
   align-items: center; 
-  font-size: 600%;
+  font-size: 1000%;
+  padding: 0px;
+  margin: 0px;
+  font-family: 'Bitter', serif;
+
 }
 
-.centeralign {
-  text-align: center;
-  display: flex;
-  justify-content: center; /* align horizontal */
-  align-items: center; 
+.centertext2 {
 
+  animation:scale2 6.5s ease-out 1;
+  font-size: 80%;
+  
+  padding: 0px;
+  margin: 0px;
+}
+
+p {
+  margin: .4em;
+  text-shadow: 5px 3px 6px rgba(204, 147, 117, 0.89);
 }
 
 body{
