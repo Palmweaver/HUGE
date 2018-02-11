@@ -1,3 +1,112 @@
 // Place all the styles related to the Welcome controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+
+.curtain {
+  position: absolute;
+  background-image: url("/map.gif");
+  background-size: contain;
+    background-color: #fefbd8;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+   
+    -webkit-animation:spin 6s linear 1;
+    -moz-animation:spin 6s linear 1;
+    animation:spin 6s linear 1;
+}
+@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); transform-origin: 50% 50%; } }
+@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); transform-origin: 50% 50%;} }
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); transform-origin: 50% 50%;} }
+
+@-webkit-keyframes scale {
+  from {
+    transform: scale3D(12.0, 12.0, 1);
+    transform-origin: 50% 50%;
+  }
+  to {
+    transform: scale3D(1, 1, 1);
+    transform-origin: 50% 50%;
+  }
+}
+
+.centertext {
+  background:rgba(0, 0, 0, 0.3);
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+  animation:scale 6s linear 1;
+  text-align: center;
+  display: flex;
+  justify-content: center; /* align horizontal */
+  align-items: center; 
+  font-size: 600%;
+}
+
+.centeralign {
+  text-align: center;
+  display: flex;
+  justify-content: center; /* align horizontal */
+  align-items: center; 
+
+}
+
+body{
+    width: 100%;
+  
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.spinner{
+    width: 80px;
+    height: 80px;
+    
+    border: 2px solid #f3f3f3;
+    border-top:3px solid #f25a41;
+    border-radius: 100%;
+    
+    position: absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right: 0;
+    margin: auto;
+    
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    from{
+        transform: rotate(0deg);
+    }to{
+        transform: rotate(360deg);
+    }
+}
+
+#overlay{
+  height:100%;
+  width:100%;
+  background:rgba(0, 0, 0, 1);
+  position:fixed;
+  left:0;
+  top:0;
+ }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
