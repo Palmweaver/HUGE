@@ -12,9 +12,9 @@
     width: 125%;
     height: 125%;
    
-    -webkit-animation:spincurt 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
-    -moz-animation:spincurt 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
-    animation:spincurt 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
+    -webkit-animation:spincurt 7s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
+    -moz-animation:spincurt 7s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
+    animation:spincurt 7s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
 }
 
 
@@ -64,9 +64,7 @@
 }
 
 .centertext1 {
-  
-  animation:scale 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
-  font-size: 10em;
+  animation:scale 7s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
   padding: 0px;
   margin: 0px;
   
@@ -74,15 +72,14 @@
 
 
 .centertext2 {
-
-  animation:scale2 6s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
-  font-size: 8em;
-  
+  animation:scale2 7s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
   padding: 0px;
   margin: 0px;
 }
 
-p {
+
+h1 {
+  font-size: 1200%;
   margin: .4em;
   text-shadow: 5px 3px 6px rgba(204, 147, 117, 0.89);
 }
@@ -135,6 +132,30 @@ body{
   animation-play-state: paused !important;
 }
 
+@media only screen and (max-width: 1620px) {
+    h1 {
+        font-size: 900%;
+    }
+}
+
+@media only screen and (max-width: 1220px) {
+    h1 {
+        font-size: 700%;
+    }
+}
+
+
+@media only screen and (max-width: 770px) {
+    h1 {
+        font-size: 500%;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    h1 {
+        font-size: 400%;
+    }
+}
 
 
 

@@ -30,6 +30,7 @@ gem 'rails-i18n', '~> 5.0.0' # For 5.0.x and 5.1.x
 gem 'devise', '~> 4.3.0'
 gem 'jquery-rails'
 gem 'bootstrap', '~> 4.0.0.alpha6'
+gem 'autoprefixer-rails'
 gem 'activeadmin', '~> 1.0'
 gem 'paperclip', "~> 5.0.0"
 gem 'rails_db', '~> 1.6.0'

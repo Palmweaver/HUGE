@@ -289,6 +289,7 @@ PLATFORMS
 
 DEPENDENCIES
   activeadmin (~> 1.0)
+  autoprefixer-rails
   bootstrap (~> 4.0.0.alpha6)
   byebug
   cancancan (~> 2.0)
