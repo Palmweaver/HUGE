@@ -69,7 +69,7 @@
   margin: 0px;
   font-size: 1200%;
   margin: .4em;
-  text-shadow: 5px 3px 6px rgba(204, 147, 117, 0.89);
+  text-shadow: 8px 3px 6px rgba(204, 147, 117, 0.79);
   
 }
 
@@ -136,6 +136,7 @@ body{
 
 @media only screen and (max-width: 1620px) {
     .centertext1, .centertext2 {
+      text-shadow: 7px 3px 6px rgba(204, 147, 117, 0.79);
         font-size: 900%;
     }
 }
@@ -143,6 +144,7 @@ body{
 @media only screen and (max-width: 1220px) {
     .centertext1, .centertext2 {
         font-size: 700%;
+        text-shadow: 6px 3px 6px rgba(204, 147, 117, 0.79);
     }
 }
 
@@ -150,18 +152,21 @@ body{
 @media only screen and (max-width: 715px) {
     .centertext1, .centertext2 {
         font-size: 500%;
+        text-shadow: 5px 3px 6px rgba(204, 147, 117, 0.79);
     }
 }
 
 @media only screen and (max-width: 500px) {
     .centertext1, .centertext2 {
         font-size: 400%;
+        text-shadow: 4px 3px 6px rgba(204, 147, 117, 0.79);
     }
 }
 
 @media only screen and (max-width: 400px) {
     .centertext1, .centertext2 {
         font-size: 300%;
+        text-shadow: 3px 3px 6px rgba(204, 147, 117, 0.79);
     }
 }
 
