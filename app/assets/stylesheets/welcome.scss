@@ -67,6 +67,9 @@
   animation:scale 7s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
   padding: 0px;
   margin: 0px;
+  font-size: 1200%;
+  margin: .4em;
+  text-shadow: 5px 3px 6px rgba(204, 147, 117, 0.89);
   
 }
 
@@ -75,14 +78,13 @@
   animation:scale2 7s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
   padding: 0px;
   margin: 0px;
-}
-
-
-h1 {
   font-size: 1200%;
   margin: .4em;
   text-shadow: 5px 3px 6px rgba(204, 147, 117, 0.89);
 }
+
+
+
 
 body{
     width: 100%;
@@ -133,26 +135,26 @@ body{
 }
 
 @media only screen and (max-width: 1620px) {
-    h1 {
+    .centertext1, .centertext2 {
         font-size: 900%;
     }
 }
 
 @media only screen and (max-width: 1220px) {
-    h1 {
+    .centertext1, .centertext2 {
         font-size: 700%;
     }
 }
 
 
-@media only screen and (max-width: 770px) {
-    h1 {
+@media only screen and (max-width: 715px) {
+    .centertext1, .centertext2 {
         font-size: 500%;
     }
 }
 
 @media only screen and (max-width: 500px) {
-    h1 {
+    .centertext1, .centertext2 {
         font-size: 400%;
     }
 }
