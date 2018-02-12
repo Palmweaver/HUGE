@@ -80,7 +80,7 @@
   margin: 0px;
   font-size: 1200%;
   margin: .4em;
-  text-shadow: 5px 3px 6px rgba(204, 147, 117, 0.89);
+  text-shadow: 8px 3px 6px rgba(204, 147, 117, 0.79);
 }
 
 
@@ -156,6 +156,12 @@ body{
 @media only screen and (max-width: 500px) {
     .centertext1, .centertext2 {
         font-size: 400%;
+    }
+}
+
+@media only screen and (max-width: 400px) {
+    .centertext1, .centertext2 {
+        font-size: 300%;
     }
 }
 
