@@ -6,7 +6,7 @@
   position: absolute;
   background-image: url("/midmap.jpg");
   background-size: 200%;
-    background-color: #fefbd8;
+    
     top: -13%;
     left: -13%;
     width: 125%;
@@ -47,8 +47,148 @@
   100% {transform: scale3D(1, 1, 1) translateY(0px); transform-origin: 50% 50%; opacity: 1;}
 }
 
+@-webkit-keyframes Gradient {
+  0% {
+    filter: brightness(1);
+        filter: contrast(1);
+  }
+  50% {
+    filter: brightness(.5);
+        filter: contrast(.5);
+  }
+  100% {
+    filter: brightness(1);
+        filter: contrast(1);
+  }
+}
+
+@-webkit-keyframes Gradient2 {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(.9);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+@-webkit-keyframes textshadow {
+  0% {
+    text-shadow: 8px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+  50% {
+    text-shadow: 1px -3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(1);
+  }
+  100% {
+    text-shadow: 8px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+}
+
+@-webkit-keyframes textshadow7 {
+  0% {
+    text-shadow: 7px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+  50% {
+    text-shadow: 1px -3px 6px rgba(45, 45, 0, 0.60);
+    filter: brightness(.9);
+  }
+  100% {
+    text-shadow: 7px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+}
+
+@-webkit-keyframes textshadow6 {
+  0% {
+    text-shadow: 6px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+  50% {
+    text-shadow: 1px -3px 6px rgba(45, 45, 0, 0.60);
+    filter: brightness(.9);
+  }
+  100% {
+    text-shadow: 6px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+}
+
+@-webkit-keyframes textshadow5 {
+  0% {
+    text-shadow: 5px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+  50% {
+    text-shadow: 1px -3px 6px rgba(45, 45, 0, 0.60);
+    filter: brightness(.9);
+  }
+  100% {
+    text-shadow: 5px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+}
+
+@-webkit-keyframes textshadow4 {
+  0% {
+    text-shadow: 4px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+  50% {
+    text-shadow: 1px -3px 6px rgba(45, 45, 0, 0.60);
+    filter: brightness(.9);
+  }
+  100% {
+    text-shadow: 4px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+}
+
+@-webkit-keyframes textshadow3 {
+  0% {
+    text-shadow: 3px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+  50% {
+    text-shadow: 1px -3px 6px rgba(45, 45, 0, 0.60);
+    filter: brightness(.9);
+  }
+  100% {
+    text-shadow: 3px 3px 6px rgba(45, 45, 0, 0.60);
+    filter: contrast(.7);
+  }
+}
+
+
+
+.sky {
+  background-color: black;
+}
+
+
+.flicker {
+  -webkit-animation: Gradient 3s cubic-bezier(.46,3.05,.79,-3.12) infinite;
+}
+
+.flicks {
+  -webkit-animation: Gradient2 3s cubic-bezier(.46,3.05,.79,-3.12) infinite;
+}
+
+.textshadowflicks {
+  -webkit-animation: textshadow 3s cubic-bezier(.46,3.05,.79,-3.12) infinite;
+  padding: 0px;
+  margin: 0px;
+  font-size: 1200%;
+  margin: .4em;
+  text-shadow: 8px 3px 6px rgba(204, 147, 117, 0.79);
+}
+
 .centertext {
-  background:rgba(0, 0, 0, 0.0);
   position: absolute;
   top: 25%;
   left: 25%;
@@ -65,26 +205,62 @@
 
 .centertext1 {
   animation:scale 7s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
-  padding: 0px;
-  margin: 0px;
-  font-size: 1200%;
-  margin: .4em;
-  text-shadow: 8px 3px 6px rgba(204, 147, 117, 0.79);
-  
 }
-
 
 .centertext2 {
   animation:scale2 7s cubic-bezier(0.215, 0.61, 0.355, 1) 1;
-  padding: 0px;
-  margin: 0px;
-  font-size: 1200%;
-  margin: .4em;
-  text-shadow: 8px 3px 6px rgba(204, 147, 117, 0.79);
+}
+
+@media only screen and (max-width: 1620px) {
+    .centertext1, .centertext2 {
+      text-shadow: 7px 3px 6px rgba(204, 147, 117, 0.79);
+    }
+    .textshadowflicks {
+      -webkit-animation: textshadow7 3s cubic-bezier(.46,3.05,.79,-3.12) infinite;
+      font-size: 900%;
+    }
+}
+
+@media only screen and (max-width: 1220px) {
+    .centertext1, .centertext2 {
+        text-shadow: 6px 3px 6px rgba(204, 147, 117, 0.79);
+    }
+    .textshadowflicks {
+      -webkit-animation: textshadow6 3s cubic-bezier(.46,3.05,.79,-3.12) infinite;
+      font-size: 700%;
+    }
 }
 
 
+@media only screen and (max-width: 850px) {
+    .centertext1, .centertext2 {
+        text-shadow: 5px 3px 6px rgba(204, 147, 117, 0.79);
+    }
+    .textshadowflicks {
+      -webkit-animation: textshadow5 3s cubic-bezier(.46,3.05,.79,-3.12) infinite;
+      font-size: 500%;
+    }
+}
 
+@media only screen and (max-width: 500px) {
+    .centertext1, .centertext2 {
+        text-shadow: 4px 3px 6px rgba(204, 147, 117, 0.79);
+    }
+    .textshadowflicks {
+      -webkit-animation: textshadow4 3s cubic-bezier(.46,3.05,.79,-3.12) infinite;
+      font-size: 400%;
+    }
+}
+
+@media only screen and (max-width: 400px) {
+    .centertext1, .centertext2 {
+        text-shadow: 3px 3px 6px rgba(204, 147, 117, 0.79);
+    }
+    .textshadowflicks {
+      -webkit-animation: textshadow3 3s cubic-bezier(.46,3.05,.79,-3.12) infinite;
+      font-size: 300%;
+    }
+}
 
 body{
     width: 100%;
@@ -127,50 +303,12 @@ body{
   left:0;
   top:0;
  }
- 
+
 .js-loading *,
 .js-loading *:before,
 .js-loading *:after {
   animation-play-state: paused !important;
 }
-
-@media only screen and (max-width: 1620px) {
-    .centertext1, .centertext2 {
-      text-shadow: 7px 3px 6px rgba(204, 147, 117, 0.79);
-        font-size: 900%;
-    }
-}
-
-@media only screen and (max-width: 1220px) {
-    .centertext1, .centertext2 {
-        font-size: 700%;
-        text-shadow: 6px 3px 6px rgba(204, 147, 117, 0.79);
-    }
-}
-
-
-@media only screen and (max-width: 715px) {
-    .centertext1, .centertext2 {
-        font-size: 500%;
-        text-shadow: 5px 3px 6px rgba(204, 147, 117, 0.79);
-    }
-}
-
-@media only screen and (max-width: 500px) {
-    .centertext1, .centertext2 {
-        font-size: 400%;
-        text-shadow: 4px 3px 6px rgba(204, 147, 117, 0.79);
-    }
-}
-
-@media only screen and (max-width: 400px) {
-    .centertext1, .centertext2 {
-        font-size: 300%;
-        text-shadow: 3px 3px 6px rgba(204, 147, 117, 0.79);
-    }
-}
-
-
 
 
 
