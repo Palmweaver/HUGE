@@ -34,15 +34,18 @@
                     <li class="hidden">
                         <a href="#page-top"></a>
                     </li>
-                    <li>  
-                     <%= link_to "Logout", destroy_user_session_path, method: :delete %>
-                    </li>
-                    <li>
-                        <a class="page-scroll" href="#download">Login</a>
-                    </li>
-                    <li>
-                        <a class="page-scroll" href="#contact">Sign Up</a>
-                    </li>
+                    <% if current_user %>
+                          <li class="nav-item navbar-text text-black"><%= current_user.email %></li>
+                        <li>  
+                            <%= link_to "Sign Out", destroy_user_session_path, method: :delete, confirm: "Are you sure?" %>
+                        </li>
+                        <% else %>
+                        <li>
+                            <%= link_to "Sign In", new_user_session_path %> 
+                        </li>
+
+                    <% end %>
+                    
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
