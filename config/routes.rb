@@ -1,4 +1,12 @@
 Rails.application.routes.draw do
+  get 'info/about'
+
+  get 'info/privacy'
+
+  get 'info/license'
+
+  get 'info/sandbox'
+
   devise_for :users
   get 'welcome/index'
 
