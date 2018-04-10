@@ -2,10 +2,15 @@
   <h1>Info#sandbox</h1>
   <p>Find me in app/views/info/sandbox.html.erb</p>
 </div> -->
-
+<div>
 <canvas id="lifeCanvas" width="800" height="800"></canvas>
-
+</div>
 <script type="text/javascript">
+
+
+
+
+
   // declare everything
   var ballX = 75;
   var ballY = 75;
@@ -125,7 +130,7 @@ function scoreBricks() {
         }
 
 // On load, set, go
-  window.onload = function() {
+document.addEventListener("turbolinks:load", function() {
     canvas = document.getElementById('lifeCanvas');
     canvasContext = canvas.getContext('2d');
 
@@ -135,9 +140,11 @@ function scoreBricks() {
     canvas.addEventListener('mousemove', updateMousePos);
 
     brickReset();
+})
 
-    
-  }
+
+
+
 
 function updateAll() {
     moveAll();
@@ -237,5 +244,22 @@ function colorText(showWords, textX,textY, fillColor) {
   canvasContext.fillText(showWords, textX,textY);
 
 }
+
+// Get the canvas element form the page
+var fullcanvas = document.getElementById('lifeCanvas');
+ 
+function fullscreen(){
+           var el = document.getElementById('lifeCanvas');
+ 
+           if(el.webkitRequestFullScreen) {
+               el.webkitRequestFullScreen();
+           }
+          else {
+             el.mozRequestFullScreen();
+          }            
+}
+ 
+fullcanvas.addEventListener("click",fullscreen)
+
 </script>
 
