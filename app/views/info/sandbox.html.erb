@@ -171,6 +171,7 @@ document.addEventListener("turbolinks:load", function() {
             // called touches, we just want
             // the first touch
             updateMousePos(e.touches[0]);
+            fullscreen();
         }, false);
         window.addEventListener('touchmove', function(e) {
             // we're not interested in this
