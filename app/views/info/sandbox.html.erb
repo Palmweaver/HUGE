@@ -1,30 +1,13 @@
-<!--  <div class="backflow">
-  <h1>Info#sandbox</h1>
-  <p>Find me in app/views/info/sandbox.html.erb</p>
-</div> -->
-
 <style type="text/css">
-* { margin:0; padding:0; } /* to remove the top and left whitespace */
-
-html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
-
-canvas { display:block; } /* To remove the scrollbars */
+  * { margin:0; padding:0; } /* to remove the top and left whitespace */
+  html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
+  canvas { display:block; } /* To remove the scrollbars */
 </style>
 <div>
-<canvas id="lifeCanvas" width="800" height="800"></canvas>
+  <canvas id="lifeCanvas" width="800" height="800"></canvas>
 </div>
 <script type="text/javascript">
-
-
-
-
-
   // declare everything
-  var ballX = 75;
-  var ballY = 75;
-  var ballSpeedX = 5;
-  var ballSpeedY = 7;
-
   const BRICK_W = 10;
   const BRICK_H = 10;
   const BRICK_GAP = 2;
@@ -37,19 +20,12 @@ canvas { display:block; } /* To remove the scrollbars */
   var scalex = 1;
   var scaley = 1;
   var filledscreen = false;
-
-  
-
-
   const PADDLE_WIDTH = 30;
   const PADDLE_THICKNESS = 30;
   var paddleX = 400;
   var paddleY = 400;
-  
-
   var canvas;
   var canvasContext;
-  
   var mouseX = 0;
   var mouseY = 0;
   var life = 0;
@@ -58,294 +34,161 @@ canvas { display:block; } /* To remove the scrollbars */
   var i;
   var f;
   var arrayIndex;
-
-
-// FlipBricks resets the entire board if the last 2 moves are identical
-
-function flipBricks() {
-  "use strict";
-  change = 0;
-
-  for (i = 0; i < brickGrid.length; i += 1) {
-    if (brickGrid[i]) {
-      if (brickScores[i] < 2 || brickScores[i] > 3) {
-        brickGrid[i] = false;
-        change = change + 1;
-      } 
-      
-
-    }
-    else {
-      if (brickScores[i] === 3) {
-        brickGrid[i] = true;
-        change = change + 1;
-      }
-    }
-  }
-  if (change < 1) {
-    brickReset();
-  }
-  
-}
-
-
-// Still under construction since playfield must be square and corners don't score right
-function scoreBricks() {
-  "use strict";
-  for (i = 0; i < brickGrid.length; i += 1) {
-    // Two Special Cases, one for the beginning and one for the end of the array
-    //if (i =< BRICK_ROWS) {
-
-    //}
-
-    // Second Case for end of array
-    //if (i => brickGrid.length - BRICK_ROWS) {
-
-    //}
-
-    // Primary code for scoring the bricks
-
-
-    // First the code for the sides
-    life = 0;
-    if (brickGrid[i - 1] === true) {
-      life = life + 1;
-    }
-    if (brickGrid[i + 1] === true) {
-      life = life + 1;
-    }
-    if (brickGrid[i + BRICK_ROWS] === true) {
-      life = life + 1;
-    }
-    if (brickGrid[i - BRICK_ROWS] === true) {
-      life = life + 1;
-    }
-
-
-    // Then the code for diagonals
-    if (brickGrid[i + BRICK_ROWS - 1] === true) {
-      life = life + 1;
-    }
-    if (brickGrid[i + BRICK_ROWS + 1] === true) {
-      life = life + 1;
-    }
-    if (brickGrid[i - BRICK_ROWS - 1] === true) {
-      life = life + 1;
-    }
-    if (brickGrid[i - BRICK_ROWS + 1] === true) {
-      life = life + 1;
-    }
-
-    brickScores[i] = life;
-  }
-}
-
-
-
-
-// On load, set, go --- Document Ready specified for turbolinks
-document.addEventListener("turbolinks:load", function() {
- "use strict";
-
-  // Get rid of the menu 
+  var fullcanvas;
+  // Bring All Ye Event Listeners
+  // Holder Event Listener --- Document Ready specified for turbolinks - Needed to fire correctly in Rails 5.0 envoironment
+  document.addEventListener("turbolinks:load", function() {
+    "use strict";
+  });// End of Document Ready Turbolinks enclosure
+  // Get the canvas reference from DOM
+  canvas = document.getElementById('lifeCanvas');
+  canvasContext = canvas.getContext('2d');
+  canvas.addEventListener('mousemove', updateMousePos, false);
+  // listen for clicks
+  window.addEventListener('click', function(e) {          
+    updateMousePos(e);
+    fullscreen();          
+  }, false);
+  // listen for touches  
+  window.addEventListener('touchstart', function(e) {          
+    // the event object has an array
+    // called touches, we just want
+    // the first touch
+    updateMousePos(e.touches[0]);
+  }, false);
+  window.addEventListener('touchmove', function(e) {
+    // we're not interested in this
+    // but prevent default behaviour
+    // so the screen doesn't scroll
+    // or zoom
+    updateMousePos(e.touches[0]);
+    e.preventDefault();
+  }, false);
+  window.addEventListener('touchend', function(e) {
+    // as above
+    updateMousePos(e.touches[0]);
+    e.preventDefault();
+  }, false);
+  // Get rid of the BootStrap menu 
   var flip = document.getElementsByClassName("canvasflip");
-
   for (f = 0; f < flip.length; f += 1) {
-
-            flip[f].outerHTML = "";
-        }
-// Get the canvas reference from DOM
-    canvas = document.getElementById('lifeCanvas');
-    canvasContext = canvas.getContext('2d');
-// Set the timer
-    var framesPerSecond = 20;
-    setInterval(updateAll, 1000/framesPerSecond);
-
-        canvas.addEventListener('mousemove', updateMousePos, false);
-//--------------------------------------------------------------
-
-
-//--------------------------------------------------------------
-// listen for clicks--------------------------------------------
-        window.addEventListener('click', function(e) {
-            
-            updateMousePos(e);
-            fullscreen();
-            
-        }, false);
-
-        // listen for touches  ---------------------------------------------
-        window.addEventListener('touchstart', function(e) {
-           
-            // the event object has an array
-            // called touches, we just want
-            // the first touch
-            updateMousePos(e.touches[0]);
-        }, false);
-        window.addEventListener('touchmove', function(e) {
-            // we're not interested in this
-            // but prevent default behaviour
-            // so the screen doesn't scroll
-            // or zoom
-            updateMousePos(e.touches[0]);
-            e.preventDefault();
-        }, false);
-        window.addEventListener('touchend', function(e) {
-            // as above
-            updateMousePos(e.touches[0]);
-            e.preventDefault();
-        }, false);
- //--------------------------------------------------------------
-
-    brickReset();
-    //--------------------------------------
-
-
-
-
-
-
-//---------------------------------------
-// FULLSCREEN CODE
-// Get the canvas element form the page
-var fullcanvas = document.getElementById('lifeCanvas');
- 
-function fullscreen(){
-          if(filledscreen === false) {
-            var el = document.getElementById('lifeCanvas');
- 
-           if(el.webkitRequestFullScreen) {
-               el.webkitRequestFullScreen();
-           }
-          else {
-             el.mozRequestFullScreen();
-          }     
-          filledscreen = true;  
-          console.log("FILLED!");
-
-          }
-
-          
-               
-}
- 
-
-
-});// End of Document Ready Turbolinks enclosure
-
-
-// RESIZE CODE
-function resize() {
-
-  
- 
-
-
-
-  if (canvas.currentHeight !== window.innerHeight || canvas.currentWidth !== window.innerWidth) {
-        canvas.currentHeight = window.innerHeight;
-        ratio = window.innerWidth / window.innerHeight;
-
-        // resize the width in proportion
-        // to the new height
-        canvas.currentWidth = canvas.currentHeight * ratio;
-
-
-        scalex = canvas.currentWidth / 800;
-        scaley = canvas.currentHeight / 800;
-
-
-        // this will create some extra space on the
-        // page, allowing us to scroll past
-        // the address bar, thus hiding it.
-        if (canvas.android || canvas.ios) {
-            document.body.style.height = (window.innerHeight + 50) + 'px';
-        }
-
-        // set the new canvas style width and height
-        // note: our canvas is still 320 x 480, but
-        // we're essentially scaling it with CSS
-        canvas.style.width = canvas.currentWidth + 'px';
-        canvas.style.height = canvas.currentHeight + 'px';
-
-
-
-      }
-
-    }
-//---------------------------------------
-
-function updateAll() {
-  "use strict";
+    flip[f].outerHTML = "";
+  }
+  // Set the timer
+  var framesPerSecond = 20;
+  setInterval(updateAll, 1000/framesPerSecond);
+  brickReset();// Initial Random Map
+  // General Functions
+  function updateAll() {
+    "use strict";
     resize();
     moveAll();
     input();
     drawAll();
-}
-
-function moveAll() {
-  "use strict";
-  scoreBricks();
-  flipBricks();
-
-}
-
-
-
-function drawAll() {
-  "use strict";
-  colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
-  colorRect(paddleX, paddleY, PADDLE_WIDTH,PADDLE_THICKNESS, 'green');
-  drawBricks();
-
-  
-  colorText(mouseX+","+mouseY, mouseX/scalex,mouseY/scaley, 'yellow');
-  
-
-  
-}
-
-function input() {
-  "use strict";
-  var mouseBrickCol = Math.floor((mouseX/scalex) / BRICK_W);
-  var mouseBrickRow = Math.floor((mouseY/scaley) / BRICK_H);
-  var brickIndexUnderMouse = rowColToArrayIndex(mouseBrickCol, mouseBrickRow);
-  if(brickIndexUnderMouse >= 0 && brickIndexUnderMouse < BRICK_COLS * BRICK_ROWS) {
-    brickGrid[brickIndexUnderMouse] = false;
   }
-
-}
-
-
-
-function drawBricks() {
-  "use strict";
-  for(eachRow=0;eachRow<BRICK_ROWS;eachRow += 1) {
-    for(eachCol=0;eachCol<BRICK_COLS;eachCol += 1) {
-
-      arrayIndex = rowColToArrayIndex(eachCol, eachRow);
-
-
-      if(brickGrid[arrayIndex]) {
-        colorRect(BRICK_W*eachCol,BRICK_H*eachRow, BRICK_W-BRICK_GAP,BRICK_H-BRICK_GAP, 'blue');
+  function moveAll() {
+    "use strict";
+    scoreBricks();
+    flipBricks();
+  }
+  function drawAll() {
+    "use strict";
+    colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
+    colorRect(paddleX, paddleY, PADDLE_WIDTH,PADDLE_THICKNESS, 'green');// Draw Paddle
+    drawBricks();
+    colorText(mouseX+","+mouseY, mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
+  }
+  function input() {
+    "use strict";
+    var mouseBrickCol = Math.floor((mouseX/scalex) / BRICK_W);
+    var mouseBrickRow = Math.floor((mouseY/scaley) / BRICK_H);
+    var brickIndexUnderMouse = rowColToArrayIndex(mouseBrickCol, mouseBrickRow);
+    if(brickIndexUnderMouse >= 0 && brickIndexUnderMouse < BRICK_COLS * BRICK_ROWS) {
+      brickGrid[brickIndexUnderMouse] = false;
+    }
+  }
+  function drawBricks() {
+    "use strict";
+    for(eachRow=0;eachRow<BRICK_ROWS;eachRow += 1) {
+      for(eachCol=0;eachCol<BRICK_COLS;eachCol += 1) {
+        arrayIndex = rowColToArrayIndex(eachCol, eachRow);
+        if(brickGrid[arrayIndex]) {
+          colorRect(BRICK_W*eachCol,BRICK_H*eachRow, BRICK_W-BRICK_GAP,BRICK_H-BRICK_GAP, 'blue');
+        }
       }
     }
   }
-}
-
+ // Primary code for scoring the bricks - playfield must be square and corners don't score correctly yet
+  function scoreBricks() {
+    "use strict";
+    for (i = 0; i < brickGrid.length; i += 1) {
+      // Two Special Cases, one for the beginning and one for the end of the array
+      //if (i =< BRICK_ROWS) {
+      //}
+      // Second Case for end of array
+      //if (i => brickGrid.length - BRICK_ROWS) {
+      //}
+      // Code for Scoring Sides
+      life = 0;
+      if (brickGrid[i - 1] === true) {
+        life = life + 1;
+      }
+      if (brickGrid[i + 1] === true) {
+        life = life + 1;
+      }
+      if (brickGrid[i + BRICK_ROWS] === true) {
+        life = life + 1;
+      }
+      if (brickGrid[i - BRICK_ROWS] === true) {
+        life = life + 1;
+      }
+      // Code for scoring diagonals
+      if (brickGrid[i + BRICK_ROWS - 1] === true) {
+        life = life + 1;
+      }
+      if (brickGrid[i + BRICK_ROWS + 1] === true) {
+        life = life + 1;
+      }
+      if (brickGrid[i - BRICK_ROWS - 1] === true) {
+        life = life + 1;
+      }
+      if (brickGrid[i - BRICK_ROWS + 1] === true) {
+        life = life + 1;
+      }
+      brickScores[i] = life;
+    }
+  }
+  // FlipBricks resets the entire board if there were less than x or 70 moves left
+  function flipBricks() {
+    "use strict";
+    change = 0;
+    for (i = 0; i < brickGrid.length; i += 1) {
+      if (brickGrid[i]) {
+        if (brickScores[i] < 2 || brickScores[i] > 3) {
+          brickGrid[i] = false;
+          change = change + 1;
+        } 
+      }
+      else {
+        if (brickScores[i] === 3) {
+          brickGrid[i] = true;
+          change = change + 1;
+        }
+      }
+    }
+    if (change < 70) {
+      brickReset();
+    } 
+  }
   function updateMousePos(evt) {
     "use strict";
     var rect = canvas.getBoundingClientRect();
     var root = document.documentElement;
- 
     mouseX = evt.clientX - rect.left - root.scrollLeft;
     mouseY = evt.clientY - rect.top - root.scrollTop;
-
     paddleX = mouseX / scalex - PADDLE_WIDTH/2;
     paddleY = mouseY / scaley - PADDLE_THICKNESS/2;
-
   }
-
   function brickReset() {
     "use strict";
     for(i=0;i<BRICK_COLS * BRICK_ROWS;i += 1) {
@@ -358,36 +201,60 @@ function drawBricks() {
       //brickGrid[i] = true;
     }
   }
-
-
-function rowColToArrayIndex(col, row) {
-  "use strict";
-  return col + BRICK_COLS * row;
-}
-
-
-
-function colorRect(topLeftX,topLeftY, boxWidth,boxHeight, fillColor) {
-  "use strict";
-  canvasContext.fillStyle = fillColor;
-  canvasContext.fillRect(topLeftX,topLeftY, boxWidth,boxHeight);
-}
-function colorCircle(centerX,centerY, radius, fillColor) {
-  "use strict";
-  canvasContext.fillStyle = fillColor;
-  canvasContext.beginPath();
-  canvasContext.arc(centerX,centerY, radius, 0,Math.PI*2, true);
-  canvasContext.fill();
-}
-
-function colorText(showWords, textX,textY, fillColor) {
-  "use strict";
-  canvasContext.fillStyle = fillColor;
-  canvasContext.fillText(showWords, textX,textY);
-
-}
-
-
-
+  function rowColToArrayIndex(col, row) {
+    "use strict";
+    return col + BRICK_COLS * row;
+  }
+  function colorRect(topLeftX,topLeftY, boxWidth,boxHeight, fillColor) {
+    "use strict";
+    canvasContext.fillStyle = fillColor;
+    canvasContext.fillRect(topLeftX,topLeftY, boxWidth,boxHeight);
+  }
+  function colorCircle(centerX,centerY, radius, fillColor) {
+    "use strict";
+    canvasContext.fillStyle = fillColor;
+    canvasContext.beginPath();
+    canvasContext.arc(centerX,centerY, radius, 0,Math.PI*2, true);
+    canvasContext.fill();
+  }
+  function colorText(showWords, textX,textY, fillColor) {
+    "use strict";
+    canvasContext.fillStyle = fillColor;
+    canvasContext.fillText(showWords, textX,textY);
+  }
+  // RESIZE CODE
+  function resize() {
+    if (canvas.currentHeight !== window.innerHeight || canvas.currentWidth !== window.innerWidth) {
+      canvas.currentHeight = window.innerHeight;
+      ratio = window.innerWidth / window.innerHeight;
+      // resize the width in proportion
+      // to the new height
+      canvas.currentWidth = canvas.currentHeight * ratio;
+      scalex = canvas.currentWidth / 800;
+      scaley = canvas.currentHeight / 800;
+      // this will create some extra space on the
+      // page, allowing us to scroll past
+      // the address bar, thus hiding it.
+      if (canvas.android || canvas.ios) {
+          document.body.style.height = (window.innerHeight + 50) + 'px';
+      }
+      // set the new canvas style width and height
+      // note: our canvas is still 320 x 480, but
+      // we're essentially scaling it with CSS
+      canvas.style.width = canvas.currentWidth + 'px';
+      canvas.style.height = canvas.currentHeight + 'px';
+    }
+  }
+  // FULLSCREEN CODE
+  function fullscreen(){
+    if(filledscreen === false) {
+     if(canvas.webkitRequestFullScreen) {
+         canvas.webkitRequestFullScreen();
+     }
+    else {
+       canvas.mozRequestFullScreen();
+    }     
+    filledscreen = true;  
+    }              
+  }
 </script>
-
