@@ -2,6 +2,14 @@
   <h1>Info#sandbox</h1>
   <p>Find me in app/views/info/sandbox.html.erb</p>
 </div> -->
+
+<style type="text/css">
+* { margin:0; padding:0; } /* to remove the top and left whitespace */
+
+html, body { width:100%; height:100%; } /* just to be sure these are full screen*/
+
+canvas { display:block; } /* To remove the scrollbars */
+</style>
 <div>
 <canvas id="lifeCanvas" width="800" height="800"></canvas>
 </div>
@@ -49,7 +57,8 @@
   var eachRow;
   var i;
   var f;
-  var arrayIndex; 
+  var arrayIndex;
+
 
 // FlipBricks resets the entire board if the last 2 moves are identical
 
@@ -162,6 +171,7 @@ document.addEventListener("turbolinks:load", function() {
             
             updateMousePos(e);
             fullscreen();
+            
         }, false);
 
         // listen for touches  ---------------------------------------------
@@ -171,7 +181,6 @@ document.addEventListener("turbolinks:load", function() {
             // called touches, we just want
             // the first touch
             updateMousePos(e.touches[0]);
-            fullscreen();
         }, false);
         window.addEventListener('touchmove', function(e) {
             // we're not interested in this
@@ -190,71 +199,6 @@ document.addEventListener("turbolinks:load", function() {
 
     brickReset();
     //--------------------------------------
-// RESIZE CODE
-function resize() {
-
-  
-  if (canvas.ios) {
-        canvas.currentHeight = screen.width;
-        ratio = screen.width / screen.height;
-
-        // resize the width in proportion
-        // to the new height
-        canvas.currentWidth = canvas.currentHeight * ratio;
-
-
-        scalex = canvas.currentWidth / 800;
-        scaley = canvas.currentHeight / 800;
-
-
-        // this will create some extra space on the
-        // page, allowing us to scroll past
-        // the address bar, thus hiding it.
-        if (canvas.android || canvas.ios) {
-            document.body.style.height = (window.innerHeight + 50) + 'px';
-        }
-
-        // set the new canvas style width and height
-        // note: our canvas is still 320 x 480, but
-        // we're essentially scaling it with CSS
-        canvas.style.width = canvas.currentWidth + 'px';
-        canvas.style.height = canvas.currentHeight + 'px';
-
-        console.log("RESIZED!");
-      }
-
-
-
-  if (canvas.currentHeight !== window.innerHeight) {
-        canvas.currentHeight = window.innerHeight;
-        ratio = window.innerWidth / window.innerHeight;
-
-        // resize the width in proportion
-        // to the new height
-        canvas.currentWidth = canvas.currentHeight * ratio;
-
-
-        scalex = canvas.currentWidth / 800;
-        scaley = canvas.currentHeight / 800;
-
-
-        // this will create some extra space on the
-        // page, allowing us to scroll past
-        // the address bar, thus hiding it.
-        if (canvas.android || canvas.ios) {
-            document.body.style.height = (window.innerHeight + 50) + 'px';
-        }
-
-        // set the new canvas style width and height
-        // note: our canvas is still 320 x 480, but
-        // we're essentially scaling it with CSS
-        canvas.style.width = canvas.currentWidth + 'px';
-        canvas.style.height = canvas.currentHeight + 'px';
-
-        console.log("RESIZED!");
-      }
-
-    }
 
 
 
@@ -280,7 +224,7 @@ function fullscreen(){
           console.log("FILLED!");
 
           }
-          resize();
+
           
                
 }
@@ -290,10 +234,50 @@ function fullscreen(){
 });// End of Document Ready Turbolinks enclosure
 
 
+// RESIZE CODE
+function resize() {
 
+  
+ 
+
+
+
+  if (canvas.currentHeight !== window.innerHeight || canvas.currentWidth !== window.innerWidth) {
+        canvas.currentHeight = window.innerHeight;
+        ratio = window.innerWidth / window.innerHeight;
+
+        // resize the width in proportion
+        // to the new height
+        canvas.currentWidth = canvas.currentHeight * ratio;
+
+
+        scalex = canvas.currentWidth / 800;
+        scaley = canvas.currentHeight / 800;
+
+
+        // this will create some extra space on the
+        // page, allowing us to scroll past
+        // the address bar, thus hiding it.
+        if (canvas.android || canvas.ios) {
+            document.body.style.height = (window.innerHeight + 50) + 'px';
+        }
+
+        // set the new canvas style width and height
+        // note: our canvas is still 320 x 480, but
+        // we're essentially scaling it with CSS
+        canvas.style.width = canvas.currentWidth + 'px';
+        canvas.style.height = canvas.currentHeight + 'px';
+
+
+
+      }
+
+    }
+//---------------------------------------
 
 function updateAll() {
   "use strict";
+    resize();
     moveAll();
     input();
     drawAll();
