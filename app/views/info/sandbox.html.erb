@@ -43,16 +43,21 @@
   var ballY = 100;
   var ballSpeedY = 8;
   var introtime = 0;
+  var level = 0;
+  var lives = 3
+  var lost = false;
+  var levelgradient = new Array(10);
+  var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
+    gradient.addColorStop("0.1","magenta");
+    gradient.addColorStop("0.3","blue");
+    gradient.addColorStop("0.7","red");
   
  
   document.addEventListener("turbolinks:load", function() { //Document Ready specified for turbolinks - Needed to fire correctly in Rails 5.0 envoironment
   });// End of Document Ready Turbolinks enclosure
 
   
-  var gradient=canvasContext.createLinearGradient(0,0,canvas.width,0);
-    gradient.addColorStop("0","magenta");
-    gradient.addColorStop("0.5","blue");
-    gradient.addColorStop("1.0","red");
+  
 
   canvas.addEventListener('mousemove', updateMousePos, false); // listen for mousemovement
   window.addEventListener('click', function(e) { // listen for clicks         
@@ -80,13 +85,59 @@
   setInterval(updateAll, 1000/framesPerSecond); // Set the timer
   brickReset();// Initial Random Map
 
+  levelgradient = ["aqua","blueviolet","chartreuse","coral","cyan","darkorange","fuchsia","greenyellow","Maroon","powderblue"]
+
+
+  function gradientChange() {
+    if(level === 1) {
+      setGradient("aqua", "blueviolet", "chartreuse");
+    }
+    else if (level === 2) {
+      setGradient("blueviolet", "chartreuse", "coral");
+    }
+    else if (level === 3) {
+      setGradient("chartreuse","coral","cyan");
+    }
+    else if (level === 4) {
+      setGradient("coral","cyan","darkorange");
+    }
+    else if (level === 5) {
+      setGradient("cyan","darkorange","fuchsia");
+    }
+    else if (level === 6) {
+      setGradient("darkorange","fuchsia","greenyellow");
+    }
+    else {
+      setGradient("gold","gold","gold");
+    }
+
+  }
+
+  function setGradient(color1, color2, color3) {
+    gradient = null;
+    gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
+    gradient.addColorStop("0",color1);
+    gradient.addColorStop("0.3",color2);
+    gradient.addColorStop("0.7",color3);
+  }
+
   function updateAll() { // General Functions
+    if (introtime <= 100) {
+      
+      introtime += 1;
+    }
+    else {
+      moveAll(); // Apply movement to entities
+
+    }
     
     resize(); // Check canvas size - if not a match resize
-    moveAll(); // Apply movement to entities
+    
     input(); // Poll for User Input
     drawAll(); // Update the screen
   }
+
+
  
   function moveAll() {
     ballX += ballSpeedX;
@@ -108,7 +159,11 @@
 
     if(ballY > canvas.height) { // bottom
       ballReset(); // if goes off bottom, reset ball
-      ballSpeedY *= -1; // Direction reversal
+      lives -= 1;
+      if(lives === 0) {
+        lost = true;
+      }
+      // ballSpeedY *= -1; // Direction reversal
     }
    
     
@@ -134,11 +189,12 @@
 
     }
 
+  }
 
 
 
-
-
+  for (f = 0; f < flip.length; f += 1) {
+    flip[f].outerHTML = ""; // Empty all elements in array
   }
 
   function drawAll() {
@@ -146,15 +202,36 @@
     colorRect(paddleX, paddleY, PADDLE_WIDTH,PADDLE_THICKNESS, 'gold');// Draw Paddle
     drawBricks();
     //colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
-    if (introtime <= 200) {
-      colorTextFancy("Game of Life Demo under new link", 100,400);// Draw Debug Paddle Text
-      introtime += 1;
-    }
-    colorTextFancy("Bricks "+bricksLeft, 10,20);// Draw Debug Paddle Text
     
-    colorCircle(ballX,ballY, 5, "White"); // Draw the Ball
-  }
+    if (introtime <= 100) {
+      var lessintrotime = 100 - introtime
+      colorTextFancy("Get Ready " + lessintrotime, 100,400,gradient);// Draw Debug Paddle Text
+    }
+    else{
+      if(lost){
+        colorTextFancy("GAME OVER", 190,300,gradient);// Draw Bricks Menu
+        gradient = null;
+        setGradient("grey","grey","grey");
+        
+      }
+      else {
+        
+        colorTextFancy("Bricks "+bricksLeft, 10,20,gradient);// Draw Bricks Menu
+        colorTextFancy("Level "+level, 400,20,gradient);// Draw Level Menu
+        colorTextFancy("Lives "+lives, 200,20,gradient);// Draw Level Menu
+        colorCircle(ballX,ballY, 5, "White"); // Draw the Ball
 
+
+      }
+    }
+      
+
+
+    
+    
+  }
+  
+  
 
 
   function isBrickAtColRow(col,row) {
@@ -210,18 +287,7 @@
           ballSpeedX *= -1;
           ballSpeedY *= -1;
         }
-
-
-
-
-
-        
-
-
-
-
-      }
-      
+      }      
     }
   }
 
@@ -258,7 +324,10 @@
         brickGrid[i] = true;
         bricksLeft++;
     }
+    level +=1;
     ballReset();
+    gradientChange();
+    
   }
 
   function ballReset() {
@@ -287,12 +356,9 @@
     canvasContext.fillText(showWords, textX,textY);
   }
 
-  function colorTextFancy(showWords, textX,textY) { // General canvas Text function
+  function colorTextFancy(showWords, textX,textY, fillColor) { // General canvas Text function
     canvasContext.font="20px Verdana";
-    // Create gradient
-    
-    // Fill with gradient
-    canvasContext.fillStyle=gradient;
+    canvasContext.fillStyle=fillColor;
     canvasContext.fillText(showWords, textX,textY);
   }
 
