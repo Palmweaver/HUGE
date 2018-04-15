@@ -10,4 +10,7 @@ class InfoController < ApplicationController
 
   def sandbox
   end
+
+  def lifedemo
+  end
 end

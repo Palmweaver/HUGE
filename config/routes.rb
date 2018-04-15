@@ -7,6 +7,8 @@ Rails.application.routes.draw do
 
   get 'info/sandbox'
 
+  get 'info/lifedemo'
+
   devise_for :users
   get 'welcome/index'
 
