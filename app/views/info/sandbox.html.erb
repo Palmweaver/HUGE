@@ -44,7 +44,7 @@
   var ballSpeedY = 8;
   var introtime = 0;
   var level = 0;
-  var lives = 3
+  var lives = 6;
   var lost = false;
   var levelgradient = new Array(10);
   var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
@@ -157,13 +157,16 @@
 
 
 
-    if(ballY > canvas.height) { // bottom
+    if(ballY > (canvas.height + 150) { // bottom
+      
       ballReset(); // if goes off bottom, reset ball
-      lives -= 1;
-      if(lives === 0) {
-        lost = true;
+      lives -= 1;  // Remove a life
+      if(lives === 0) { // If that was the last one
+        lost = true; // The Player has lost
       }
       // ballSpeedY *= -1; // Direction reversal
+      
+      
     }
    
     
@@ -193,9 +196,6 @@
 
 
 
-  for (f = 0; f < flip.length; f += 1) {
-    flip[f].outerHTML = ""; // Empty all elements in array
-  }
 
   function drawAll() {
     colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
@@ -219,6 +219,7 @@
         colorTextFancy("Bricks "+bricksLeft, 10,20,gradient);// Draw Bricks Menu
         colorTextFancy("Level "+level, 400,20,gradient);// Draw Level Menu
         colorTextFancy("Lives "+lives, 200,20,gradient);// Draw Level Menu
+        colorTextFancy("Bit's Brick Game - More Lives Added", 100,400,gradient);// Bits Message
         colorCircle(ballX,ballY, 5, "White"); // Draw the Ball
 
 
@@ -325,12 +326,12 @@
         bricksLeft++;
     }
     level +=1;
-    ballReset();
-    gradientChange();
+    ballReset(); // Reset the Ball into play
+    gradientChange(); // Change the Brick and Text Color
     
   }
 
-  function ballReset() {
+  function ballReset() { // Reset the Ball Position only
     ballX = canvas.width/2;
     ballY = canvas.height/2;
   }
@@ -356,7 +357,7 @@
     canvasContext.fillText(showWords, textX,textY);
   }
 
-  function colorTextFancy(showWords, textX,textY, fillColor) { // General canvas Text function
+  function colorTextFancy(showWords, textX,textY, fillColor) { // 20px Verdana canvas Text function
     canvasContext.font="20px Verdana";
     canvasContext.fillStyle=fillColor;
     canvasContext.fillText(showWords, textX,textY);

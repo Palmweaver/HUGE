@@ -33,7 +33,7 @@ Rails.application.configure do
   authentication: 'plain',
   enable_starttls_auto: true,
   user_name: 'cigarbarstogies@gmail.com',
-  password: 'fattizzi'
+  password: gmail_password
   }
 
 
