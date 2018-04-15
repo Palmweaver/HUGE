@@ -1,24 +1,4 @@
-# README
+HUGE (HTML Universal Gaming Engine)
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
 
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+HUGE is a Javascript library meant simplify mobile cross-platform game design with several premade helper functions for HTML5 canvas and a template that passes all broswer requirements for scaling and sizing the screen with touch input.
