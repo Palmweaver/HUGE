@@ -46,7 +46,6 @@
   var level = 0;
   var lives = 6;
   var lost = false;
-  var levelgradient = new Array(10);
   var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
     gradient.addColorStop("0.1","magenta");
     gradient.addColorStop("0.3","blue");
@@ -85,11 +84,9 @@
   setInterval(updateAll, 1000/framesPerSecond); // Set the timer
   brickReset();// Initial Random Map
 
-  levelgradient = ["aqua","blueviolet","chartreuse","coral","cyan","darkorange","fuchsia","greenyellow","Maroon","powderblue"]
 
-
-  function gradientChange() {
-    if(level === 1) {
+  function gradientChange() { // Needs Refactoring for More level progression
+    if(level === 1) {  // For each level, cycle a gradient
       setGradient("aqua", "blueviolet", "chartreuse");
     }
     else if (level === 2) {
@@ -113,10 +110,10 @@
 
   }
 
-  function setGradient(color1, color2, color3) {
-    gradient = null;
-    gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
-    gradient.addColorStop("0",color1);
+  function setGradient(color1, color2, color3) { // Empties the gradient and sets a new one with 3 color inputs
+    gradient = null;  // Kill the previous gradient
+    gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height); // Set a new one for our canvas
+    gradient.addColorStop("0",color1); // add all 3 colors
     gradient.addColorStop("0.3",color2);
     gradient.addColorStop("0.7",color3);
   }
@@ -133,11 +130,9 @@
     
     resize(); // Check canvas size - if not a match resize
     
-    input(); // Poll for User Input
+    brickBallCollision(); // Handle Ball/BrickCollision
     drawAll(); // Update the screen
   }
-
-
  
   function moveAll() {
     ballX += ballSpeedX;
@@ -155,8 +150,6 @@
       ballSpeedY *= -1;
     }
 
-
-
     if(ballY > (canvas.height + 150) ){ // bottom
       
       ballReset(); // if goes off bottom, reset ball
@@ -166,11 +159,8 @@
       }
       // ballSpeedY *= -1; // Direction reversal
       
-      
     }
    
-    
-
     var paddleTopEdgeY = canvas.height - PADDLE_DIST_FROM_EDGE;
     var paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS;
     var paddleLeftEdgeX = paddleX;
@@ -182,20 +172,15 @@
         ballX < paddleRightEdgeX) { // left of right side
       ballSpeedY *= -1;
 
-    var centerOfPaddleX = paddleX + PADDLE_WIDTH/2;
-    var ballDistFromPaddleCenterX = ballX - centerOfPaddleX;
-    ballSpeedX = ballDistFromPaddleCenterX * 0.35;
+      var centerOfPaddleX = paddleX + PADDLE_WIDTH/2;
+      var ballDistFromPaddleCenterX = ballX - centerOfPaddleX;
+      ballSpeedX = ballDistFromPaddleCenterX * 0.35;
 
-    if(bricksLeft === 0) {
-      brickReset();
+      if(bricksLeft === 0) {
+        brickReset();
+      }
     }
-
-    }
-
   }
-
- 
-
 
   function drawAll() {
     colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
@@ -208,91 +193,77 @@
       colorTextFancy("Get Ready " + lessintrotime, 100,400,gradient);// Draw Debug Paddle Text
     }
     else{
-      if(lost){
-        colorTextFancy("GAME OVER", 190,300,gradient);// Draw Bricks Menu
-        gradient = null;
-        setGradient("grey","grey","grey");
+      if(lost){ // If the player lose conditions are true
+        colorTextFancy("GAME OVER", 190,300,gradient);// Show Game Over Screen text
+        gradient = null; // Kill the gradient variable
+        setGradient("grey","grey","grey"); // and set a new gradient for all grey
         
       }
-      else {
+      else { // If the player hasn't lost yet
         
         colorTextFancy("Bricks "+bricksLeft, 10,20,gradient);// Draw Bricks Menu
         colorTextFancy("Level "+level, 400,20,gradient);// Draw Level Menu
-        colorTextFancy("Lives "+lives, 200,20,gradient);// Draw Level Menu
+        colorTextFancy("Lives "+lives, 200,20,gradient);// Draw Lives Menu
         // colorTextFancy("Bit's Brick Game - More Lives Added", 100,400,gradient);// Bits Message
         colorCircle(ballX,ballY, 5, "White"); // Draw the Ball
-
-
       }
     }
-      
-
-
-    
-    
   }
-  
-  
 
-
-  function isBrickAtColRow(col,row) {
-    if(col >= 0 && col < BRICK_COLS &&
+  function isBrickAtColRow(col,row) { // Is this a valid brick in our grid?
+    if(col >= 0 && col < BRICK_COLS && // if is matches our defined constants for grid size
        row >= 0 && row < BRICK_ROWS) {
-      var brickIndexUnderCoord = rowColToArrayIndex(col, row);
-      return brickGrid[brickIndexUnderCoord];
+      var brickIndexUnderCoord = rowColToArrayIndex(col, row); // compute the Index
+      return brickGrid[brickIndexUnderCoord]; // Return our index for the array
     } else {
-      return false;
+      return false; // if its not in our grid, return false
     }
   }
 
-
-
-
-
-  function input() {
+  function brickBallCollision() { // Handle results of ball/Brick position overlap
     var ballBrickCol = Math.floor(ballX / BRICK_W); // Round values to save processor cycles
-    var ballBrickRow = Math.floor(ballY / BRICK_H); // When computing scale(From resize function) of cursor position
-    var brickIndexUnderBall = rowColToArrayIndex(ballBrickCol, ballBrickRow); // brickIndexUnderMouse is true if Index is matched
+    var ballBrickRow = Math.floor(ballY / BRICK_H); // When computing where the ball is on the grid
+    var brickIndexUnderBall = rowColToArrayIndex(ballBrickCol, ballBrickRow); // brickIndexUnderBall is true if Index is matched
     
     if(ballBrickCol >= 0 && ballBrickCol < BRICK_COLS &&
-       ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS) { // And if so
+       ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS) { // And if the ball is on a spot on the grid that holds a brick
       
       if(isBrickAtColRow(ballBrickCol,ballBrickRow)) {
-        brickGrid[brickIndexUnderBall] = false; // Mark that square to be deleted
-        bricksLeft--;
+        brickGrid[brickIndexUnderBall] = false; // Mark that brick to be deleted
+        bricksLeft--; // Reduce the Bricks left for the Display Counter
 
 
-        var prevBallX = ballX - ballSpeedX;
+        var prevBallX = ballX - ballSpeedX; // Ask the Question: Where was the ball in the last frame?
         var prevBallY = ballY - ballSpeedY;
-        var prevBrickCol = Math.floor(prevBallX / BRICK_W);
-        var prevBrickRow = Math.floor(prevBallY / BRICK_H);
+        var prevBrickCol = Math.floor(prevBallX / BRICK_W); // Round the value and calculate which 
+        var prevBrickRow = Math.floor(prevBallY / BRICK_H); // Column and row that corresponds to
 
-        var bothTestsFailed = true;
+        var bothTestsFailed = true; // Means it hit a corner
 
-        if(prevBrickCol != ballBrickCol) {
-          if(isBrickAtColRow(prevBrickCol, ballBrickRow) === false) {
-            ballSpeedX *= -1;
-            bothTestsFailed = false;
+        if(prevBrickCol != ballBrickCol) { // if the hit came from a different Column
+          if(isBrickAtColRow(prevBrickCol, ballBrickRow) === false) { // and if it's a valid brick
+            ballSpeedX *= -1; // Bounce the ball on the x axis
+            bothTestsFailed = false; // This was not a corner
           }
           
         }
-        if(prevBrickRow != ballBrickRow) {
-          if(isBrickAtColRow(ballBrickCol, prevBrickRow) === false) {
-            ballSpeedY *= -1;
-            bothTestsFailed = false;
+        if(prevBrickRow != ballBrickRow) { // if the hit came from a differet Row
+          if(isBrickAtColRow(ballBrickCol, prevBrickRow) === false) { // and if it's a valid brick
+            ballSpeedY *= -1; // Bounce the ball on the y axis
+            bothTestsFailed = false; // This was not a corner
           }
           
         }
 
-        if(bothTestsFailed) {
-          ballSpeedX *= -1;
+        if(bothTestsFailed) { // This must be a corner
+          ballSpeedX *= -1; // bounce the ball on both axises
           ballSpeedY *= -1;
         }
       }      
     }
   }
 
-  function drawBricks() {
+  function drawBricks() { // Draws the bricks for every frame
     for(eachRow=0;eachRow<BRICK_ROWS;eachRow += 1) { // For Each Column
       for(eachCol=0;eachCol<BRICK_COLS;eachCol += 1) { // And Each Row
         arrayIndex = rowColToArrayIndex(eachCol, eachRow); // Compute the Index
@@ -302,10 +273,6 @@
       }
     }
   }
-
-  
-
-  
 
   function updateMousePos(evt) {
     var rect = canvas.getBoundingClientRect(); // Get the size of the canvas
@@ -362,13 +329,6 @@
     canvasContext.fillStyle=fillColor;
     canvasContext.fillText(showWords, textX,textY);
   }
-
-
-
-
-
-
-
 
   function resize() { // resizes the canvas to the window width and height
     if (canvas.currentHeight !== window.innerHeight || canvas.currentWidth !== window.innerWidth) { // If we're not already perfectly sized for width and height
