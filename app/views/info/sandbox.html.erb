@@ -25,7 +25,7 @@
   const PADDLE_WIDTH = 80;
   const PADDLE_THICKNESS = 8;
   const PADDLE_DIST_FROM_EDGE = 20;
-  var ballSize = 3;
+  var ballSize = 5;
   var bricksLeft = 0;
   var canvas = document.getElementById('lifeCanvas'); // Get the canvas reference from DOM
   var canvasContext = canvas.getContext('2d'); // Get the canvas context
@@ -52,6 +52,7 @@
   var held = false;
   var touchActive;
   var title = true;
+  var score = 0;
   var lostTime;
 
   var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
@@ -112,8 +113,8 @@
     lostTime = 0;
     level = 0;
     brickReset();
-    
-    lives = 6;
+    Score = 0;
+    lives = 12;
   }
 
 
@@ -172,6 +173,9 @@
     if (title) {
       return;
     }
+    if (lost) {
+      return;
+    }
 
 
     if(held === false) {
@@ -193,10 +197,12 @@
       if(ballY > (canvas.height + 150) ){ // bottom
         
         ballReset(); // if goes off bottom, reset ball
-        lives -= 1;  // Remove a life
-        if(lives === 0) { // If that was the last one
+        
+        if(lives === 1) { // If that was the last one
           lost = true; // The Player has lost
+          lives = 7;
         }
+        lives -= 1;  // Remove a life
         // ballSpeedY *= -1; // Direction reversal
         
       }
@@ -241,7 +247,9 @@
   function drawAll() {
     if(title) {
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
-      colorTextFancy("CLICK TO START", 190,300,gradient);// Show Game Over Screen text
+      colorTextFancy("CLICK TO START", 150,250,gradient);// Show Game Over Screen text
+      colorTextFancy("HOLD TO CATCH BALL", 130,310,gradient);// Show Game Over Screen text
+      colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,370,gradient);// Show Game Over Screen text
       drawMenu();
       drawBricks();
     }
@@ -275,9 +283,9 @@
 
   function drawMenu() {
     colorTextFancy("Bricks "+bricksLeft, 10,20,gradient);// Draw Bricks Menu
-    colorTextFancy("Level "+level, 280,20,gradient);// Draw Level Menu
-    colorTextFancy("Lives "+lives, 160,20,gradient);// Draw Lives Menu
-    colorTextFancy("Version .5", 380,20,gradient);// Draw Lives Menu
+    colorTextFancy("Level "+level, 240,20,gradient);// Draw Level Menu
+    colorTextFancy("Lives "+lives, 135,20,gradient);// Draw Lives Menu
+    colorTextFancy("Score " + score, 340,20,gradient);// Draw Score Menu
   }
 
   function showGameOver() {
@@ -402,6 +410,10 @@
 
 
   function killBrick(vertical) {
+    score += 10;
+    if(score % 1000 === 0) {
+      lives += 1;
+    }
     brickGrid[pointIndex] = false; // Mark that brick to be deleted
     bricksLeft--; // Reduce the Bricks left for the Display Counter
     if(vertical) {
