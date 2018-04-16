@@ -69,7 +69,7 @@
 
   canvas.addEventListener('mousemove', updateMousePos, false); // listen for mousemovement
   canvas.addEventListener('mousedown', function() {
-    if((mouseX/scalex) > 5 && (mouseX/scalex) < 115 && (mouseY/scaley) > 1 && (mouseY/scaley) < 25) {
+    if(((mouseX/scalex) > 155 && (mouseX/scalex) < 315 && (mouseY/scaley) > 185 && (mouseY/scaley) < 240) && (paused === true || title === true) ) {
       fullscreen();
     }
     if (lost && lostTime > 50) {
@@ -255,23 +255,31 @@
     if(title) {
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
 
-      colorTextFancy("CLICK TO START", 150,250,gradient);// Show Game Over Screen text
-      colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show Game Over Screen text
-      colorTextFancy("CLICK SCORE TO PAUSE", 120,330,gradient);// Show Game Over Screen text
-      colorTextFancy("CLICK BRICKS FOR FULLSCREEN", 85,370,gradient);// Show Game Over Screen text
-      colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show Game Over Screen text
+      colorTextFancy("CLICK TO START", 150,260,gradient);// Show  Screen text
+      colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show  Screen text
+      colorTextFancy("CLICK SCORE TO PAUSE", 120,330,gradient);// Show  Screen text
+      // colorTextFancy("FULLSCREEN ", 85,370,gradient);// Show  Screen text
+      colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show  Screen text
+
+      colorRect(160,190, 150,45, gradient); // outside box
+      colorRect(165,195, 140,35, 'black'); // inside box
+      colorTextFancy("FULLSCREEN", 170,220,gradient);// text in box
       drawMenu();
       drawBricks();
     }
     else if(paused) {
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
-      colorRect(180,120, 106,46, 'red'); // clear screen
-      colorRect(185,125, 96,35, 'green'); // clear screen
+
+      colorRect(180,120, 106,45, gradient); // outside box
+      colorRect(185,125, 96,35, 'black'); // inside box
+      colorTextFancy("RESUME", 190,150,gradient);// text in box
+
+      colorRect(160,190, 150,45, gradient); // outside box
+      colorRect(165,195, 140,35, 'black'); // inside box
+      colorTextFancy("FULLSCREEN", 170,220,gradient);// text in box
+
+
       
-      colorTextFancy("RESUME", 190,150,gradient);// Show Game Over Screen text
-
-
-      colorTextFancy("CLICK TO START", 150,250,gradient);// Show Game Over Screen text
       colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show Game Over Screen text
       colorTextFancy("CLICK SCORE TO PAUSE", 120,330,gradient);// Show Game Over Screen text
       colorTextFancy("CLICK BRICKS FOR FULLSCREEN", 85,370,gradient);// Show Game Over Screen text
