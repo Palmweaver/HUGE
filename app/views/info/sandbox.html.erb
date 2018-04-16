@@ -21,10 +21,10 @@
   var ratio = 1;
   var scalex = 1;
   var scaley = 1;
-  var filledscreen = false;
   const PADDLE_WIDTH = 80;
   const PADDLE_THICKNESS = 8;
   const PADDLE_DIST_FROM_EDGE = 20;
+  const STARTING_LIVES = 2;
   var ballSize = 5;
   var bricksLeft = 0;
   var canvas = document.getElementById('lifeCanvas'); // Get the canvas reference from DOM
@@ -47,13 +47,14 @@
   var pointIndex;
   var introtime = 0;
   var level = 0;
-  var lives = 6;
+  var lives = STARTING_LIVES;
   var lost = false;
   var held = false;
   var touchActive;
   var title = true;
   var score = 0;
   var lostTime;
+  var paused = false;
 
   var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
     gradient.addColorStop("0.1","magenta");
@@ -64,13 +65,23 @@
   document.addEventListener("turbolinks:load", function() { //Document Ready specified for turbolinks - Needed to fire correctly in Rails 5.0 envoironment
   });// End of Document Ready Turbolinks enclosure
 
-  
-  
+ 
 
   canvas.addEventListener('mousemove', updateMousePos, false); // listen for mousemovement
   canvas.addEventListener('mousedown', function() {
+    if((mouseX/scalex) > 5 && (mouseX/scalex) < 115 && (mouseY/scaley) > 1 && (mouseY/scaley) < 25) {
+      fullscreen();
+    }
     if (lost && lostTime > 50) {
       gameReset();
+    }
+    else {
+      if(paused === false &&  (mouseX/scalex) > 335 && (mouseX/scalex) < 470 && (mouseY/scaley) > 1 && (mouseY/scaley) < 25) {
+        paused = true;
+      }
+      else {
+        paused = false;
+      }
     }
     touchActive = true;
   }, false); // listen for mousedown
@@ -81,7 +92,6 @@
   }, false); // listen for mouseup
   window.addEventListener('click', function(e) { // listen for clicks         
     updateMousePos(e);
-    fullscreen();  // single fire version of fullscreen added to click      
   }, false);
   window.addEventListener('touchstart', function(e) { // listen for touches 
     touchActive = true;
@@ -114,7 +124,7 @@
     level = 0;
     brickReset();
     score = 0;
-    lives = 12;
+    lives = STARTING_LIVES;
   }
 
 
@@ -154,7 +164,7 @@
   }
 
   function updateAll() { // General Functions
-    if (introtime <= 50 && title === false) {
+    if (introtime <= 50 && title === false && paused === false) { // Give the player time to get ready
       
       introtime += 1;
     }
@@ -170,12 +180,10 @@
   }
  
   function moveAll() {
-    if (title) {
+    if (title || lost || paused) { // if at the Title, Lost, or Paused Screen, bail out and don't animate movement
       return;
     }
-    if (lost) {
-      return;
-    }
+  
 
 
     if(held === false) {
@@ -200,7 +208,6 @@
         
         if(lives === 1) { // If that was the last one
           lost = true; // The Player has lost
-          lives = 7;
         }
         lives -= 1;  // Remove a life
         // ballSpeedY *= -1; // Direction reversal
@@ -248,8 +255,10 @@
     if(title) {
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
       colorTextFancy("CLICK TO START", 150,250,gradient);// Show Game Over Screen text
-      colorTextFancy("HOLD TO CATCH BALL", 130,310,gradient);// Show Game Over Screen text
-      colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,370,gradient);// Show Game Over Screen text
+      colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show Game Over Screen text
+      colorTextFancy("CLICK SCORE TO PAUSE", 120,330,gradient);// Show Game Over Screen text
+      colorTextFancy("CLICK BRICKS FOR FULLSCREEN", 85,370,gradient);// Show Game Over Screen text
+      colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show Game Over Screen text
       drawMenu();
       drawBricks();
     }
@@ -257,7 +266,7 @@
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
       colorRect(paddleX, paddleY, PADDLE_WIDTH,PADDLE_THICKNESS, 'gold');// Draw Paddle
       drawBricks();
-      //colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
+      // colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
       
       if (introtime <= 50) {
         var lessintrotime = 50 - introtime
@@ -270,6 +279,7 @@
             colorTextFancy("CLICK TO RESET", 190,400, "grey");// Show Game Over Screen text
           }
           showGameOver();
+          drawMenu();
         }
         else { // If the player hasn't lost yet
           
@@ -292,6 +302,7 @@
     colorTextFancy("GAME OVER", 190,300,gradient);// Show Game Over Screen text
     gradient = null; // Kill the gradient variable
     setGradient("grey","grey","grey"); // and set a new gradient for all grey
+
   }
   
 
@@ -411,7 +422,7 @@
 
   function killBrick(vertical) {
     score += 10;
-    if(score % 1000 === 0) {
+    if(score % 1000 === 0 && score > 0) {
       lives += 1;
     }
     brickGrid[pointIndex] = false; // Mark that brick to be deleted
@@ -509,15 +520,12 @@
   }
 
   function fullscreen(){ // Requests FullScreen from the browser on the first click
-    if(filledscreen === false) { // If we haven't tried this before
      if(canvas.webkitRequestFullScreen) { // And if this is Chrome or Safari
          canvas.webkitRequestFullScreen(); // Go for the webkit fullscreen Request
      }
     else {
        canvas.mozRequestFullScreen(); // Else we'll try the Mozilla fullscreen Request
     }     
-    filledscreen = true;  // Now we've tried this once.
-    }              
   }
 
 </script>
