@@ -269,7 +269,7 @@
       colorRect(185,125, 96,35, 'green'); // clear screen
       
       colorTextFancy("RESUME", 190,150,gradient);// Show Game Over Screen text
-       
+
 
       colorTextFancy("CLICK TO START", 150,250,gradient);// Show Game Over Screen text
       colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show Game Over Screen text
@@ -278,7 +278,7 @@
       colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show Game Over Screen text
       colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
       drawMenu();
-    }
+    } 
     else {
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
       colorRect(paddleX, paddleY, PADDLE_WIDTH,PADDLE_THICKNESS, 'gold');// Draw Paddle
