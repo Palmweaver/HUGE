@@ -24,7 +24,7 @@
   const PADDLE_WIDTH = 80;
   const PADDLE_THICKNESS = 8;
   const PADDLE_DIST_FROM_EDGE = 20;
-  const STARTING_LIVES = 2;
+  const STARTING_LIVES = 5;
   var ballSize = 5;
   var bricksLeft = 0;
   var canvas = document.getElementById('lifeCanvas'); // Get the canvas reference from DOM
@@ -79,7 +79,7 @@
       if(paused === false &&  (mouseX/scalex) > 335 && (mouseX/scalex) < 470 && (mouseY/scaley) > 1 && (mouseY/scaley) < 25) {
         paused = true;
       }
-      else {
+      else if (paused === true &&  (mouseX/scalex) > 170 && (mouseX/scalex) < 295 && (mouseY/scaley) > 110 && (mouseY/scaley) < 175) {
         paused = false;
       }
     }
@@ -254,6 +254,7 @@
   function drawAll() {
     if(title) {
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
+
       colorTextFancy("CLICK TO START", 150,250,gradient);// Show Game Over Screen text
       colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show Game Over Screen text
       colorTextFancy("CLICK SCORE TO PAUSE", 120,330,gradient);// Show Game Over Screen text
@@ -261,6 +262,22 @@
       colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show Game Over Screen text
       drawMenu();
       drawBricks();
+    }
+    else if(paused) {
+      colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
+      colorRect(180,120, 106,46, 'red'); // clear screen
+      colorRect(185,125, 96,35, 'green'); // clear screen
+      
+      colorTextFancy("RESUME", 190,150,gradient);// Show Game Over Screen text
+      
+
+      colorTextFancy("CLICK TO START", 150,250,gradient);// Show Game Over Screen text
+      colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show Game Over Screen text
+      colorTextFancy("CLICK SCORE TO PAUSE", 120,330,gradient);// Show Game Over Screen text
+      colorTextFancy("CLICK BRICKS FOR FULLSCREEN", 85,370,gradient);// Show Game Over Screen text
+      colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show Game Over Screen text
+      colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
+      drawMenu();
     }
     else {
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
