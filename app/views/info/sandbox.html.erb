@@ -10,10 +10,11 @@
   "use strict";
 
   const BRICK_W = 50;
-  const BRICK_H = 10;
+  const BRICK_H = 16;
   const BRICK_GAP = 1;
   const BRICK_COLS = 10;
-  const BRICK_ROWS = 15;
+  const BRICK_ROWS = 9;
+  var gutter = 3;
   var brickGrid = new Array(BRICK_COLS * BRICK_ROWS);
   var brickScores = new Array(BRICK_COLS * BRICK_ROWS);
   var change = 1;
@@ -22,8 +23,9 @@
   var scaley = 1;
   var filledscreen = false;
   const PADDLE_WIDTH = 80;
-  const PADDLE_THICKNESS = 5;
+  const PADDLE_THICKNESS = 8;
   const PADDLE_DIST_FROM_EDGE = 20;
+  var ballSize = 5;
   var bricksLeft = 0;
   var canvas = document.getElementById('lifeCanvas'); // Get the canvas reference from DOM
   var canvasContext = canvas.getContext('2d'); // Get the canvas context
@@ -39,13 +41,15 @@
   var arrayIndex;
   var fullcanvas;
   var ballX = 100;
-  var ballSpeedX = 5;
+  var ballSpeedX = 2;
   var ballY = 100;
-  var ballSpeedY = 8;
+  var ballSpeedY = 5;
+  var pointIndex;
   var introtime = 0;
   var level = 0;
-  var lives = 6;
+  var lives = 99;
   var lost = false;
+
   var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
     gradient.addColorStop("0.1","magenta");
     gradient.addColorStop("0.3","blue");
@@ -80,7 +84,7 @@
     flip[f].outerHTML = ""; // Empty all elements in array
   }
 
-  var framesPerSecond = 20;
+  var framesPerSecond = 30;
   setInterval(updateAll, 1000/framesPerSecond); // Set the timer
   brickReset();// Initial Random Map
 
@@ -119,7 +123,7 @@
   }
 
   function updateAll() { // General Functions
-    if (introtime <= 100) {
+    if (introtime <= 50) {
       
       introtime += 1;
     }
@@ -166,18 +170,18 @@
     var paddleLeftEdgeX = paddleX;
     var paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
 
-    if (ballY > paddleTopEdgeY && // Below top of paddle
+    if (ballY > paddleTopEdgeY - ballSize && // Below top of paddle - ball size
         ballY < paddleBottomEdgeY && // above the bottom
         ballX > paddleLeftEdgeX && // right of left side
         ballX < paddleRightEdgeX) { // left of right side
       ballSpeedY *= -1;
 
-      var centerOfPaddleX = paddleX + PADDLE_WIDTH/2;
-      var ballDistFromPaddleCenterX = ballX - centerOfPaddleX;
-      ballSpeedX = ballDistFromPaddleCenterX * 0.35;
+      var centerOfPaddleX = paddleX + PADDLE_WIDTH/2; // compute what the center of the player paddle is
+      var ballDistFromPaddleCenterX = ballX - centerOfPaddleX; // compute the distance from center the ball hit the paddle
+      ballSpeedX = ballDistFromPaddleCenterX * 0.25; // Left/Right speed of ball is determined by distance from center with 1/3 modifier
 
-      if(bricksLeft === 0) {
-        brickReset();
+      if(bricksLeft === 0) { // If that was the last brick in the Grid
+        brickReset(); // Reset the level/Grid
       }
     }
   }
@@ -188,8 +192,8 @@
     drawBricks();
     //colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
     
-    if (introtime <= 100) {
-      var lessintrotime = 100 - introtime
+    if (introtime <= 50) {
+      var lessintrotime = 50 - introtime
       colorTextFancy("Get Ready " + lessintrotime, 100,400,gradient);// Draw Debug Paddle Text
     }
     else{
@@ -202,10 +206,109 @@
       else { // If the player hasn't lost yet
         
         colorTextFancy("Bricks "+bricksLeft, 10,20,gradient);// Draw Bricks Menu
-        colorTextFancy("Level "+level, 400,20,gradient);// Draw Level Menu
-        colorTextFancy("Lives "+lives, 200,20,gradient);// Draw Lives Menu
+        colorTextFancy("Level "+level, 280,20,gradient);// Draw Level Menu
+        colorTextFancy("Lives "+lives, 160,20,gradient);// Draw Lives Menu
+        colorTextFancy("Version .5", 380,20,gradient);// Draw Lives Menu
         // colorTextFancy("Bit's Brick Game - More Lives Added", 100,400,gradient);// Bits Message
-        colorCircle(ballX,ballY, 5, "White"); // Draw the Ball
+        colorCircle(ballX,ballY, ballSize, "White"); // Draw the Ball
+      }
+    }
+  }
+
+  
+
+  function brickBallCollision() { // Handle results of ball/Brick position overlap
+
+    // ---- BRICK DECTECTION/HANDLING
+
+    // isPointOverBrick(ballLeftSide) && isPointOverBrick(ballRightSide) && isPointOverBrick(ballTopSide) && isPointOverBrick(ballBottomSide)
+
+    if (isPointOverBrick(ballLeftSide) && isPointOverBrick(ballRightSide) && isPointOverBrick(ballTopSide) && isPointOverBrick(ballBottomSide)) {
+      var ballBrickCol = Math.floor(ballX / BRICK_W); // Round values to save processor cycles
+      var ballBrickRow = Math.floor(ballY / BRICK_H); // When computing where the ball center is on the grid
+      var brickIndexUnderBall = rowColToArrayIndex(ballBrickCol, ballBrickRow); // Calculate whate the brickGrid Index would be
+      
+      if(ballBrickCol >= 0 && ballBrickCol < BRICK_COLS &&
+         ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS) { //==== And if the ball center is on a spot on the grid that holds a brick
+        
+        if(isBrickAtColRow(ballBrickCol,ballBrickRow)) { // if it's an active brick
+          brickGrid[brickIndexUnderBall] = false; // Mark that brick to be deleted
+          bricksLeft--; // Reduce the Bricks left for the Display Counter
+
+          // ---- BOUNCE CODE
+
+
+          var prevBallX = ballX - ballSpeedX; // Ask the Question: Where was the ball in the last frame?
+          var prevBallY = ballY - ballSpeedY;
+          var prevBrickCol = Math.floor(prevBallX / BRICK_W); // Round the value and calculate which 
+          var prevBrickRow = Math.floor(prevBallY / BRICK_H); // Column and row that corresponds to
+
+          var bothTestsFailed = true; // Means it hit a corner
+
+          if(prevBrickCol != ballBrickCol) { // if the hit came from a different Column
+            if(isBrickAtColRow(prevBrickCol, ballBrickRow) === false) { // and if it's a valid brick
+              ballSpeedX *= -1; // Bounce the ball on the x axis
+              bothTestsFailed = false; // This was not a corner
+            }
+            
+          }
+          if(prevBrickRow != ballBrickRow) { // if the hit came from a differet Row
+            if(isBrickAtColRow(ballBrickCol, prevBrickRow) === false) { // and if it's a valid brick
+              ballSpeedY *= -1; // Bounce the ball on the y axis
+              bothTestsFailed = false; // This was not a corner
+            }
+            
+          }
+
+          if(bothTestsFailed) { // This must be a corner
+            ballSpeedX *= -1; // bounce the ball on both axises
+            ballSpeedY *= -1;
+          }
+        }      
+      }
+
+    }
+    else {
+      var ballLeftSide = (ballX - ballSize); // Left Edge of Ball
+      var ballRightSide = (ballX + ballSize); // Right Edge of Ball
+      var ballBottomSide = (ballY + ballSize); // Bottom of Ball
+      var ballTopSide = (ballY - ballSize); // Top of Ball
+
+
+      if(ballSpeedX > 0 && isPointOverBrick(ballRightSide, ballY)) { // if it's going right and it's right edge is over a brick
+        pointIndex = isPointOverBrick(ballRightSide, ballY);
+        killBrick(false);
+      }
+
+      if(ballSpeedX < 0 && isPointOverBrick(ballLeftSide, ballY)) { // if it's going right and it's right edge is over a brick
+        pointIndex = isPointOverBrick(ballLeftSide, ballY);
+        killBrick(false);
+      }
+
+      if(ballSpeedY > 0 && isPointOverBrick(ballX, ballBottomSide)) { // if it's going down and it's bottom edge is over a brick
+        pointIndex = isPointOverBrick(ballX, ballBottomSide);
+        killBrick(true);
+      }
+
+      if(ballSpeedY < 0 && isPointOverBrick(ballX, ballTopSide) ) {  // if the ball is going up and it's top edge is over a brick or 
+        pointIndex = isPointOverBrick(ballX, ballTopSide);
+        killBrick(true);
+      }
+    }
+  }
+
+  function isPointOverBrick(xcoord,ycoord) { // compute if a point is on a valid active brick
+    var pointBrickCol = Math.floor(xcoord / BRICK_W); // Round values to save processor cycles
+    var pointBrickRow = Math.floor(ycoord / BRICK_H); // When computing where the point is on the grid
+    var pointIndexUnderBall = rowColToArrayIndex(pointBrickCol, pointBrickRow); // Calculate whate the brickGrid Index would be
+
+    if(pointBrickCol >= 0 && pointBrickCol < BRICK_COLS &&
+       pointBrickRow >= 0 && pointBrickRow < BRICK_ROWS) { //==== And if the point center is on a spot on the grid that holds a brick
+      if(isBrickAtColRow(pointBrickCol,pointBrickRow)) { // if it's an active brick
+        return pointIndexUnderBall;
+      }
+      else {
+        return false;
       }
     }
   }
@@ -220,48 +323,29 @@
     }
   }
 
-  function brickBallCollision() { // Handle results of ball/Brick position overlap
-    var ballBrickCol = Math.floor(ballX / BRICK_W); // Round values to save processor cycles
-    var ballBrickRow = Math.floor(ballY / BRICK_H); // When computing where the ball is on the grid
-    var brickIndexUnderBall = rowColToArrayIndex(ballBrickCol, ballBrickRow); // brickIndexUnderBall is true if Index is matched
-    
-    if(ballBrickCol >= 0 && ballBrickCol < BRICK_COLS &&
-       ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS) { // And if the ball is on a spot on the grid that holds a brick
-      
-      if(isBrickAtColRow(ballBrickCol,ballBrickRow)) {
-        brickGrid[brickIndexUnderBall] = false; // Mark that brick to be deleted
-        bricksLeft--; // Reduce the Bricks left for the Display Counter
+  function rowColToArrayIndex(col, row) { // calculate the index within the column array based on position
+    return col + BRICK_COLS * row;
+  }
 
 
-        var prevBallX = ballX - ballSpeedX; // Ask the Question: Where was the ball in the last frame?
-        var prevBallY = ballY - ballSpeedY;
-        var prevBrickCol = Math.floor(prevBallX / BRICK_W); // Round the value and calculate which 
-        var prevBrickRow = Math.floor(prevBallY / BRICK_H); // Column and row that corresponds to
 
-        var bothTestsFailed = true; // Means it hit a corner
 
-        if(prevBrickCol != ballBrickCol) { // if the hit came from a different Column
-          if(isBrickAtColRow(prevBrickCol, ballBrickRow) === false) { // and if it's a valid brick
-            ballSpeedX *= -1; // Bounce the ball on the x axis
-            bothTestsFailed = false; // This was not a corner
-          }
-          
-        }
-        if(prevBrickRow != ballBrickRow) { // if the hit came from a differet Row
-          if(isBrickAtColRow(ballBrickCol, prevBrickRow) === false) { // and if it's a valid brick
-            ballSpeedY *= -1; // Bounce the ball on the y axis
-            bothTestsFailed = false; // This was not a corner
-          }
-          
-        }
 
-        if(bothTestsFailed) { // This must be a corner
-          ballSpeedX *= -1; // bounce the ball on both axises
-          ballSpeedY *= -1;
-        }
-      }      
+  function killBrick(vertical) {
+    brickGrid[pointIndex] = false; // Mark that brick to be deleted
+    bricksLeft--; // Reduce the Bricks left for the Display Counter
+    if(vertical) {
+      ballSpeedY *= -1; // Reverse vertical ball speed
+    }
+    else {
+      ballSpeedX *= -1; // Reverse horizontal ball speed
     }
   }
+
+
+  
+
+
 
   function drawBricks() { // Draws the bricks for every frame
     for(eachRow=0;eachRow<BRICK_ROWS;eachRow += 1) { // For Each Column
@@ -285,7 +369,7 @@
 
   function brickReset() {
     bricksLeft = 0;
-    for(i=0;i < 3*BRICK_COLS;i += 1) { // for all of the columns in all the rows
+    for(i=0;i < gutter * BRICK_COLS;i += 1) { // for all of the columns in all the rows
         brickGrid[i] = false;
     }
     for(;i<BRICK_COLS * BRICK_ROWS;i += 1) { // for all of the columns in all the rows
@@ -303,9 +387,7 @@
     ballY = canvas.height/2;
   }
 
-  function rowColToArrayIndex(col, row) { // calculate the index within the column array based on position
-    return col + BRICK_COLS * row;
-  }
+
 
   function colorRect(topLeftX,topLeftY, boxWidth,boxHeight, fillColor) { // General canvas Rectangle function
     canvasContext.fillStyle = fillColor;
