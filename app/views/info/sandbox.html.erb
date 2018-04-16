@@ -49,6 +49,8 @@
   var level = 0;
   var lives = 99;
   var lost = false;
+  var held = false;
+  var touchActive;
 
   var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
     gradient.addColorStop("0.1","magenta");
@@ -63,18 +65,29 @@
   
 
   canvas.addEventListener('mousemove', updateMousePos, false); // listen for mousemovement
+  canvas.addEventListener('mousedown', function() {
+    touchActive = true;
+  }, false); // listen for mousedown
+  canvas.addEventListener('mouseup', function() {
+    touchActive = false;
+    held = false;
+  }, false); // listen for mouseup
   window.addEventListener('click', function(e) { // listen for clicks         
     updateMousePos(e);
     fullscreen();  // single fire version of fullscreen added to click      
   }, false);
-  window.addEventListener('touchstart', function(e) { // listen for touches           
+  window.addEventListener('touchstart', function(e) { // listen for touches 
+    touchActive = true;
     updateMousePos(e.touches[0]);
   }, false);
   window.addEventListener('touchmove', function(e) {
+    touchActive = true;
     updateMousePos(e.touches[0]);
     e.preventDefault(); // no zoom or scroll
   }, false);
   window.addEventListener('touchend', function(e) {
+    touchActive = false;
+    held = false;
     updateMousePos(e.touches[0]);
     e.preventDefault(); // no zoom or scroll
   }, false);
@@ -139,51 +152,68 @@
   }
  
   function moveAll() {
-    ballX += ballSpeedX;
-    ballY += ballSpeedY;
+    if(held === false) {
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
 
-    if(ballX < 0 && ballSpeedX < 0.0) { // Left
-      ballSpeedX *= -1;
-    }
-
-    if(ballX > canvas.width  && ballSpeedX > 0.0) { // Right
-      ballSpeedX *= -1;
-    }
-
-    if(ballY < 0 && ballSpeedY < 0.0) { // Top
-      ballSpeedY *= -1;
-    }
-
-    if(ballY > (canvas.height + 150) ){ // bottom
-      
-      ballReset(); // if goes off bottom, reset ball
-      lives -= 1;  // Remove a life
-      if(lives === 0) { // If that was the last one
-        lost = true; // The Player has lost
+      if(ballX < 0 && ballSpeedX < 0.0) { // Left
+        ballSpeedX *= -1;
       }
-      // ballSpeedY *= -1; // Direction reversal
-      
-    }
-   
-    var paddleTopEdgeY = canvas.height - PADDLE_DIST_FROM_EDGE;
-    var paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS;
-    var paddleLeftEdgeX = paddleX;
-    var paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
 
-    if (ballY > paddleTopEdgeY - ballSize && // Below top of paddle - ball size
-        ballY < paddleBottomEdgeY && // above the bottom
-        ballX > paddleLeftEdgeX && // right of left side
-        ballX < paddleRightEdgeX) { // left of right side
-      ballSpeedY *= -1;
+      if(ballX > canvas.width  && ballSpeedX > 0.0) { // Right
+        ballSpeedX *= -1;
+      }
 
-      var centerOfPaddleX = paddleX + PADDLE_WIDTH/2; // compute what the center of the player paddle is
-      var ballDistFromPaddleCenterX = ballX - centerOfPaddleX; // compute the distance from center the ball hit the paddle
-      ballSpeedX = ballDistFromPaddleCenterX * 0.25; // Left/Right speed of ball is determined by distance from center with 1/3 modifier
+      if(ballY < 0 && ballSpeedY < 0.0) { // Top
+        ballSpeedY *= -1;
+      }
 
-      if(bricksLeft === 0) { // If that was the last brick in the Grid
-        brickReset(); // Reset the level/Grid
+      if(ballY > (canvas.height + 150) ){ // bottom
+        
+        ballReset(); // if goes off bottom, reset ball
+        lives -= 1;  // Remove a life
+        if(lives === 0) { // If that was the last one
+          lost = true; // The Player has lost
+        }
+        // ballSpeedY *= -1; // Direction reversal
+        
+      }
+     
+      var paddleTopEdgeY = canvas.height - PADDLE_DIST_FROM_EDGE;
+      var paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS;
+      var paddleLeftEdgeX = paddleX;
+      var paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
+
+      if (ballY > paddleTopEdgeY - ballSize && // Below top of paddle - ball size
+          ballY < paddleBottomEdgeY && // above the bottom
+          ballX > paddleLeftEdgeX && // right of left side
+          ballX < paddleRightEdgeX) { // left of right side
+        if(held === false && touchActive === true) {
+          held = true;
+        }
+        else {
+          ballSpeedY *= -1;
+
+          var centerOfPaddleX = paddleX + PADDLE_WIDTH/2; // compute what the center of the player paddle is
+          var ballDistFromPaddleCenterX = ballX - centerOfPaddleX; // compute the distance from center the ball hit the paddle
+          ballSpeedX = ballDistFromPaddleCenterX * 0.25; // Left/Right speed of ball is determined by distance from center with 1/3 modifier
+
+          if(bricksLeft === 0) { // If that was the last brick in the Grid
+            brickReset(); // Reset the level/Grid
+          }
+        }
+        
       }
     }
+    else {
+      ballX = paddleX + PADDLE_WIDTH / 2;
+      ballY = paddleY - ballSize;
+      ballSpeedY *= -1;
+
+    }
+    
+
+    
   }
 
   function drawAll() {
