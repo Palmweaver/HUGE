@@ -25,7 +25,7 @@
   const PADDLE_WIDTH = 80;
   const PADDLE_THICKNESS = 8;
   const PADDLE_DIST_FROM_EDGE = 20;
-  var ballSize = 5;
+  var ballSize = 3;
   var bricksLeft = 0;
   var canvas = document.getElementById('lifeCanvas'); // Get the canvas reference from DOM
   var canvasContext = canvas.getContext('2d'); // Get the canvas context
@@ -47,10 +47,12 @@
   var pointIndex;
   var introtime = 0;
   var level = 0;
-  var lives = 99;
+  var lives = 6;
   var lost = false;
   var held = false;
   var touchActive;
+  var title = true;
+  var lostTime;
 
   var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
     gradient.addColorStop("0.1","magenta");
@@ -66,9 +68,13 @@
 
   canvas.addEventListener('mousemove', updateMousePos, false); // listen for mousemovement
   canvas.addEventListener('mousedown', function() {
+    if (lost && lostTime > 50) {
+      gameReset();
+    }
     touchActive = true;
   }, false); // listen for mousedown
   canvas.addEventListener('mouseup', function() {
+    title = false;
     touchActive = false;
     held = false;
   }, false); // listen for mouseup
@@ -101,10 +107,19 @@
   setInterval(updateAll, 1000/framesPerSecond); // Set the timer
   brickReset();// Initial Random Map
 
+  function gameReset() {
+    lost = false;
+    lostTime = 0;
+    level = 0;
+    brickReset();
+    
+    lives = 6;
+  }
+
 
   function gradientChange() { // Needs Refactoring for More level progression
     if(level === 1) {  // For each level, cycle a gradient
-      setGradient("aqua", "blueviolet", "chartreuse");
+      setGradient("magenta", "blue", "red");
     }
     else if (level === 2) {
       setGradient("blueviolet", "chartreuse", "coral");
@@ -121,10 +136,12 @@
     else if (level === 6) {
       setGradient("darkorange","fuchsia","greenyellow");
     }
+    else if (level === 7) {
+      setGradient("aqua", "blueviolet", "chartreuse");
+    }
     else {
       setGradient("gold","gold","gold");
     }
-
   }
 
   function setGradient(color1, color2, color3) { // Empties the gradient and sets a new one with 3 color inputs
@@ -136,7 +153,7 @@
   }
 
   function updateAll() { // General Functions
-    if (introtime <= 50) {
+    if (introtime <= 50 && title === false) {
       
       introtime += 1;
     }
@@ -152,19 +169,24 @@
   }
  
   function moveAll() {
+    if (title) {
+      return;
+    }
+
+
     if(held === false) {
       ballX += ballSpeedX;
       ballY += ballSpeedY;
 
-      if(ballX < 0 && ballSpeedX < 0.0) { // Left
+      if(ballX - ballSize < 0 && ballSpeedX < 0.0) { // Left
         ballSpeedX *= -1;
       }
 
-      if(ballX > canvas.width  && ballSpeedX > 0.0) { // Right
+      if(ballX + ballSize > canvas.width  && ballSpeedX > 0.0) { // Right
         ballSpeedX *= -1;
       }
 
-      if(ballY < 0 && ballSpeedY < 0.0) { // Top
+      if(ballY - ballSize < 0 && ballSpeedY < 0.0) { // Top
         ballSpeedY *= -1;
       }
 
@@ -217,34 +239,52 @@
   }
 
   function drawAll() {
-    colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
-    colorRect(paddleX, paddleY, PADDLE_WIDTH,PADDLE_THICKNESS, 'gold');// Draw Paddle
-    drawBricks();
-    //colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
-    
-    if (introtime <= 50) {
-      var lessintrotime = 50 - introtime
-      colorTextFancy("Get Ready " + lessintrotime, 100,400,gradient);// Draw Debug Paddle Text
+    if(title) {
+      colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
+      colorTextFancy("CLICK TO START", 190,300,gradient);// Show Game Over Screen text
+      drawMenu();
+      drawBricks();
     }
-    else{
-      if(lost){ // If the player lose conditions are true
-        colorTextFancy("GAME OVER", 190,300,gradient);// Show Game Over Screen text
-        gradient = null; // Kill the gradient variable
-        setGradient("grey","grey","grey"); // and set a new gradient for all grey
-        
+    else {
+      colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
+      colorRect(paddleX, paddleY, PADDLE_WIDTH,PADDLE_THICKNESS, 'gold');// Draw Paddle
+      drawBricks();
+      //colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
+      
+      if (introtime <= 50) {
+        var lessintrotime = 50 - introtime
+        colorTextFancy("Get Ready " + lessintrotime, 100,400,gradient);// Draw Debug Paddle Text
       }
-      else { // If the player hasn't lost yet
-        
-        colorTextFancy("Bricks "+bricksLeft, 10,20,gradient);// Draw Bricks Menu
-        colorTextFancy("Level "+level, 280,20,gradient);// Draw Level Menu
-        colorTextFancy("Lives "+lives, 160,20,gradient);// Draw Lives Menu
-        colorTextFancy("Version .5", 380,20,gradient);// Draw Lives Menu
-        // colorTextFancy("Bit's Brick Game - More Lives Added", 100,400,gradient);// Bits Message
-        colorCircle(ballX,ballY, ballSize, "White"); // Draw the Ball
+      else{
+        if(lost){ // If the player lose conditions are true
+          lostTime += 1;
+          if (lostTime > 50) {
+            colorTextFancy("CLICK TO RESET", 190,400, "grey");// Show Game Over Screen text
+          }
+          showGameOver();
+        }
+        else { // If the player hasn't lost yet
+          
+          drawMenu();
+          // colorTextFancy("Bit's Brick Game - More Lives Added", 100,400,gradient);// Bits Message
+          colorCircle(ballX,ballY, ballSize, "White"); // Draw the Ball
+        }
       }
     }
   }
 
+  function drawMenu() {
+    colorTextFancy("Bricks "+bricksLeft, 10,20,gradient);// Draw Bricks Menu
+    colorTextFancy("Level "+level, 280,20,gradient);// Draw Level Menu
+    colorTextFancy("Lives "+lives, 160,20,gradient);// Draw Lives Menu
+    colorTextFancy("Version .5", 380,20,gradient);// Draw Lives Menu
+  }
+
+  function showGameOver() {
+    colorTextFancy("GAME OVER", 190,300,gradient);// Show Game Over Screen text
+    gradient = null; // Kill the gradient variable
+    setGradient("grey","grey","grey"); // and set a new gradient for all grey
+  }
   
 
   function brickBallCollision() { // Handle results of ball/Brick position overlap
@@ -398,6 +438,7 @@
   }
 
   function brickReset() {
+    lostTime = 0;
     bricksLeft = 0;
     for(i=0;i < gutter * BRICK_COLS;i += 1) { // for all of the columns in all the rows
         brickGrid[i] = false;
