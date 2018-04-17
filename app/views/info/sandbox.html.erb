@@ -76,7 +76,7 @@
       gameReset();
     }
     else {
-      if(paused === false &&  (mouseX/scalex) > 335 && (mouseX/scalex) < 470 && (mouseY/scaley) > 1 && (mouseY/scaley) < 25) {
+      if(paused === false &&  (mouseX/scalex) > 190 && (mouseX/scalex) < 275 && (mouseY/scaley) > 1 && (mouseY/scaley) < 30) {
         paused = true;
       }
       else if (paused === true &&  (mouseX/scalex) > 170 && (mouseX/scalex) < 295 && (mouseY/scaley) > 110 && (mouseY/scaley) < 175) {
@@ -251,40 +251,37 @@
     
   }
 
+  function drawBoxedText(text, textX,textY, innerLength) {
+    colorRect((textX - 10),(textY - 30), (innerLength + 10), 45, gradient); // outside box  
+    colorRect((textX - 5),(textY - 25), innerLength,35, 'black'); // inside box
+    colorTextFancy(text, textX,textY, gradient);// text in box
+  }
+
+
   function drawAll() {
     if(title) {
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
 
       colorTextFancy("CLICK TO START", 150,260,gradient);// Show  Screen text
       colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show  Screen text
-      colorTextFancy("CLICK SCORE TO PAUSE", 120,330,gradient);// Show  Screen text
-      // colorTextFancy("FULLSCREEN ", 85,370,gradient);// Show  Screen text
       colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show  Screen text
 
-      colorRect(160,190, 150,45, gradient); // outside box
-      colorRect(165,195, 140,35, 'black'); // inside box
-      colorTextFancy("FULLSCREEN", 170,220,gradient);// text in box
+      drawBoxedText("FULLSCREEN", 170, 220, 140);
       drawMenu();
       drawBricks();
     }
     else if(paused) {
+
       colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
-
-      colorRect(180,120, 106,45, gradient); // outside box
-      colorRect(185,125, 96,35, 'black'); // inside box
-      colorTextFancy("RESUME", 190,150,gradient);// text in box
-
-      colorRect(160,190, 150,45, gradient); // outside box
-      colorRect(165,195, 140,35, 'black'); // inside box
-      colorTextFancy("FULLSCREEN", 170,220,gradient);// text in box
+      drawBoxedText("RESUME", 190, 150, 96);
+      drawBoxedText("FULLSCREEN", 170, 220, 140);
+      
 
 
       
       colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show Game Over Screen text
-      colorTextFancy("CLICK SCORE TO PAUSE", 120,330,gradient);// Show Game Over Screen text
-      colorTextFancy("CLICK BRICKS FOR FULLSCREEN", 85,370,gradient);// Show Game Over Screen text
       colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show Game Over Screen text
-      colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
+      // colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
       drawMenu();
     } 
     else {
@@ -317,10 +314,14 @@
   }
 
   function drawMenu() {
-    colorTextFancy("Bricks "+bricksLeft, 10,20,gradient);// Draw Bricks Menu
-    colorTextFancy("Level "+level, 240,20,gradient);// Draw Level Menu
-    colorTextFancy("Lives "+lives, 135,20,gradient);// Draw Lives Menu
-    colorTextFancy("Score " + score, 340,20,gradient);// Draw Score Menu
+    colorTextFancy("Bricks "+bricksLeft, 5,20,gradient);// Draw Bricks Menu
+    colorTextFancy("Level "+level, 280,20,gradient);// Draw Level Menu
+    colorTextFancy("Lives "+lives, 110,20,gradient);// Draw Lives Menu
+    colorTextFancy("Score " + score, 360,20,gradient);// Draw Score Menu
+    if(paused === false) {
+      colorTextFancy("PAUSE", 200,20,"white");// Draw Score Menu
+    }
+    
   }
 
   function showGameOver() {
