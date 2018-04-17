@@ -9,6 +9,8 @@ Rails.application.routes.draw do
 
   get 'info/lifedemo'
 
+  get 'info/pixelbricks'
+
   devise_for :users
   get 'welcome/index'
 
