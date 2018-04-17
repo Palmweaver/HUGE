@@ -9,54 +9,51 @@
 <script type="text/javascript">
   "use strict";
 
-  const BRICK_W = 50;
-  const BRICK_H = 16;
-  const BRICK_GAP = 1;
-  const BRICK_COLS = 10;
-  const BRICK_ROWS = 9;
-  var gutter = 3;
-  var brickGrid = new Array(BRICK_COLS * BRICK_ROWS);
-  var brickScores = new Array(BRICK_COLS * BRICK_ROWS);
-  var change = 1;
-  var ratio = 1;
-  var scalex = 1;
-  var scaley = 1;
+  const BRICK_W = 50; // Brick Width
+  const BRICK_H = 16; // Brick Height
+  const BRICK_GAP = 1; // Amount of Gap to leave between bricks
+  const BRICK_COLS = 10; // How many collumns for Grid
+  const BRICK_ROWS = 9; // How many rows for Grid
+  var gutter = 3; // How much space to leave at top
+  var brickGrid = new Array(BRICK_COLS * BRICK_ROWS); // Array to hold the Grid 
+  var brickScores = new Array(BRICK_COLS * BRICK_ROWS); // Array to hold the true/false active status of each brick
+  var ratio = 1; // Ratio is set after a resize is called
+  var scalex = 1; // Modifier for scaled screensize x
+  var scaley = 1; // Modifier for scaled screensize y
   const PADDLE_WIDTH = 80;
   const PADDLE_THICKNESS = 8;
-  const PADDLE_DIST_FROM_EDGE = 20;
+  const PADDLE_DIST_FROM_EDGE = 20; // How far from bottom to draw paddle
   const STARTING_LIVES = 5;
   var ballSize = 5;
-  var bricksLeft = 0;
+  var bricksLeft = 0; // HOw many bricks in the grid are still active
   var canvas = document.getElementById('lifeCanvas'); // Get the canvas reference from DOM
   var canvasContext = canvas.getContext('2d'); // Get the canvas context
-  var paddleX = 100;
-  var paddleY = canvas.height - PADDLE_DIST_FROM_EDGE;
-  var mouseX = 0;
-  var mouseY = 0;
-  var life = 0;
-  var eachCol; 
-  var eachRow;
-  var i;
-  var f;
-  var arrayIndex;
-  var fullcanvas;
-  var ballX = 100;
-  var ballSpeedX = 2;
-  var ballY = 100;
-  var ballSpeedY = 5;
-  var pointIndex;
-  var introtime = 0;
-  var level = 0;
-  var lives = STARTING_LIVES;
-  var lost = false;
-  var held = false;
-  var touchActive;
-  var title = true;
-  var score = 0;
-  var lostTime;
-  var paused = false;
+  var paddleX = 100; // Paddle X position based on mouse or touch input
+  var paddleY = canvas.height - PADDLE_DIST_FROM_EDGE; // Application of how far off the bottom to draw the paddle
+  var mouseX = 0; // Raw mouse position as Reported by the browser
+  var mouseY = 0; // Raw mouse position as Reported by the browser
+  var eachCol;  // Column amount iterator for loops
+  var eachRow; // Row amount iterator for loops
+  var i; // Basic loop iterator
+  var f; // Flip loop iterator
+  var arrayIndex; // array index for brickGrid
+  var ballX = 100; // Initial value for ball x position
+  var ballSpeedX = 2; // Initial value for ball x speed
+  var ballY = 100; // Initial value for ball y position
+  var ballSpeedY = 5; // Initial value for ball y speed
+  var pointIndex; // used to track a point on the board and tell if it's over a brick 
+  var introtime = 0; // Amount of time to give the player at the start to get their shit together
+  var level = 0; // Game starts at level zero, and advances at each reset of bricks - so first reset sets level 1
+  var lives = STARTING_LIVES; // Sets the starting life count to the active life count as start of game
+  var lost = false; // fired when player lose conditions met
+  var held = false; // true if the player is holding touch or the mouse down
+  var touchActive; // true if the player is currently touching the screen
+  var title = true; // true if at the initial title screen
+  var score = 0; // score always starts at 0
+  var lostTime; // How much time has passed since the player lost
+  var paused = false; // true if the player has paused the game.
 
-  var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height);
+  var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height); // Set starting color scheme
     gradient.addColorStop("0.1","magenta");
     gradient.addColorStop("0.3","blue");
     gradient.addColorStop("0.7","red");
@@ -318,7 +315,7 @@
     colorTextFancy("Level "+level, 280,20,gradient);// Draw Level Menu
     colorTextFancy("Lives "+lives, 110,20,gradient);// Draw Lives Menu
     colorTextFancy("Score " + score, 360,20,gradient);// Draw Score Menu
-    if(paused === false) {
+    if(paused === false && title === false) {
       colorTextFancy("PAUSE", 200,20,"white");// Draw Score Menu
     }
     
