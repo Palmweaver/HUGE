@@ -52,78 +52,452 @@
   var score = 0; // score always starts at 0
   var lostTime; // How much time has passed since the player lost
   var paused = false; // true if the player has paused the game.
+  var framesPerSecond = 30;  // Set our frames per second
+  var ballLeftSide; // Left Edge of Ball
+  var ballRightSide; // Right Edge of Ball
+  var ballBottomSide; // Bottom of Ball
+  var ballTopSide; // Top of Ball
+  var paddleTopEdgeY; // Paddle top Edge computed by checking paddle distance from edge constant against screen size
+  var paddleBottomEdgeY; // Bottome edge is just the top plus the paddle thickness constant
+  var paddleLeftEdgeX; // Left edge is the same as paddleX
+  var paddleRightEdgeX; // Right edge based on paddle width constant
 
   var gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height); // Set starting color scheme
     gradient.addColorStop("0.1","magenta");
     gradient.addColorStop("0.3","blue");
     gradient.addColorStop("0.7","red");
   
- 
+ // ---------- Event Listener Section -------------------
+
   document.addEventListener("turbolinks:load", function() { //Document Ready specified for turbolinks - Needed to fire correctly in Rails 5.0 envoironment
   });// End of Document Ready Turbolinks enclosure
 
- 
+  canvas.addEventListener('mousemove', updateMousePos, false); // listen for mousemovement and update the curser
+  canvas.addEventListener('mousedown', function() { // Listen for the mouse down event
+    if(((mouseX/scalex) > 155 && (mouseX/scalex) < 315 && (mouseY/scaley) > 185 && (mouseY/scaley) < 240) && (paused === true || title === true) ) { // If it's over the fullscreen button and it's showing
+      fullscreen(); // Request Browser Fullscreen
+    }
+    if (lost && lostTime > 50) { // If the player has lost and the 'Click to Restart' is showing
+      gameReset(); // Reset the game
+    }
+    else { // Or
+      if(paused === false &&  (mouseX/scalex) > 190 && (mouseX/scalex) < 275 && (mouseY/scaley) > 1 && (mouseY/scaley) < 30) { // if the game is not paused and the player clicks the pause button
+        paused = true; // pause the game
+      }
+      else if (paused === true &&  (mouseX/scalex) > 170 && (mouseX/scalex) < 295 && (mouseY/scaley) > 110 && (mouseY/scaley) < 175) { // Or if it is paused and the player clicks the resume button
+        paused = false; // resume the game
+      }
+    }
+    touchActive = true; // consider touch to be active for mobile devices
+  }, false); 
+  canvas.addEventListener('mouseup', function() {  // Listen for the  mouse up event
+    title = false; // title screen must go, since you obviously have clicked or touched the screen
+    touchActive = false; // touch is no longer active as judged by mobile devices
+    held = false; // and the player is not longer holding their finger on the screen or mouse button down
+  }, false); 
+  window.addEventListener('click', function(e) { // listen for clicks as per desktop browsers in general         
+    updateMousePos(e); // Update the mouse position based upon this event
+  }, false); 
+  window.addEventListener('touchstart', function(e) { // listen for touches to start on mobile  
+    touchActive = true; // Touch is now considered active by the interface
+    updateMousePos(e.touches[0]); // Update the mouse position based upon the most recent touch event
+  }, false); 
+  window.addEventListener('touchmove', function(e) { // listen for touch move event on mobile
+    touchActive = true; // Touch is now considered active by the interface
+    updateMousePos(e.touches[0]); // Update the mouse position based upon the most recent touch event
+    e.preventDefault(); // no zoom or scroll
+  }, false);
+  window.addEventListener('touchend', function(e) { // listen for touch end event on mobile
+    touchActive = false; // Touch is no longer considered to be active
+    held = false; // Player is no longer holding finger on screen or mouse button down
+    updateMousePos(e.touches[0]);  // Update the mouse position based upon the most recent touch event
+    e.preventDefault(); // no zoom or scroll
+  }, false);
 
-  canvas.addEventListener('mousemove', updateMousePos, false); // listen for mousemovement
-  canvas.addEventListener('mousedown', function() {
-    if(((mouseX/scalex) > 155 && (mouseX/scalex) < 315 && (mouseY/scaley) > 185 && (mouseY/scaley) < 240) && (paused === true || title === true) ) {
-      fullscreen();
-    }
-    if (lost && lostTime > 50) {
-      gameReset();
-    }
-    else {
-      if(paused === false &&  (mouseX/scalex) > 190 && (mouseX/scalex) < 275 && (mouseY/scaley) > 1 && (mouseY/scaley) < 30) {
-        paused = true;
-      }
-      else if (paused === true &&  (mouseX/scalex) > 170 && (mouseX/scalex) < 295 && (mouseY/scaley) > 110 && (mouseY/scaley) < 175) {
-        paused = false;
-      }
-    }
-    touchActive = true;
-  }, false); // listen for mousedown
-  canvas.addEventListener('mouseup', function() {
-    title = false;
-    touchActive = false;
-    held = false;
-  }, false); // listen for mouseup
-  window.addEventListener('click', function(e) { // listen for clicks         
-    updateMousePos(e);
-  }, false);
-  window.addEventListener('touchstart', function(e) { // listen for touches 
-    touchActive = true;
-    updateMousePos(e.touches[0]);
-  }, false);
-  window.addEventListener('touchmove', function(e) {
-    touchActive = true;
-    updateMousePos(e.touches[0]);
-    e.preventDefault(); // no zoom or scroll
-  }, false);
-  window.addEventListener('touchend', function(e) {
-    touchActive = false;
-    held = false;
-    updateMousePos(e.touches[0]);
-    e.preventDefault(); // no zoom or scroll
-  }, false);
+// Other setup Code
 
   var flip = document.getElementsByClassName("canvasflip"); // Get rid of the BootStrap menu 
-  for (f = 0; f < flip.length; f += 1) {
+  for (f = 0; f < flip.length; f += 1) { // For all elements with the class canvasflip
     flip[f].outerHTML = ""; // Empty all elements in array
   }
 
-  var framesPerSecond = 30;
   setInterval(updateAll, 1000/framesPerSecond); // Set the timer
-  brickReset();// Initial Random Map
+  brickReset();// Initial Map
 
-  function gameReset() {
-    lost = false;
-    lostTime = 0;
-    level = 0;
-    brickReset();
-    score = 0;
-    lives = STARTING_LIVES;
+// ------ Setup Code End -------
+
+  function updateAll() { // General Functions 
+    if (introtime <= 50 && title === false && paused === false) { // Give the player time to get ready
+      introtime += 1; // Add 1 to the amount of time for the intro
+    }
+    else {
+      moveAll(); // Apply movement to entities
+    }
+    
+    resize(); // Check canvas size - if not a match resize
+    
+    brickBallCollision(); // Handle Ball/BrickCollision
+    drawAll(); // Update the screen
   }
 
+  function moveAll() { 
+    if (title || lost || paused) { // if at the Title, Lost, or Paused Screen
+      return; // bail out and don't animate movement
+    }
+  
+    if(held === false) { // if the player isn't holding the ball
+      playBall(); // Animate ball physics
+    }
+    else { // the player is holding the ball
+      ballX = paddleX + PADDLE_WIDTH / 2; // have the ball follow the paddle along the x
+      ballY = paddleY - ballSize; // And the y coords
+      ballSpeedY *= -1; // And flip the vertical ball speed for when the player releases
+    }
+  }
+
+  function playBall() {
+    screenEdgeHandling();
+    paddleEdgeHandling();
+  }
+
+  function screenEdgeHandling() {
+    ballX += ballSpeedX; // Move ball 1 increment of current speed vertically
+    ballY += ballSpeedY; // Move ball 1 increment of current speed vertically
+
+    //---- Screen Edge handling
+    if(ballX - ballSize < 0 && ballSpeedX < 0.0) { // If it's touching the left side of the screen and going left
+      ballSpeedX *= -1; // Send it to the right
+    }
+
+    if(ballX + ballSize > canvas.width  && ballSpeedX > 0.0) { // If it's touching the right side of the screen and going right
+      ballSpeedX *= -1; // Send it to the left
+    }
+
+    if(ballY - ballSize < 0 && ballSpeedY < 0.0) { // If it's touching the top of the screen and going up
+      ballSpeedY *= -1;  // Send it down
+    }
+
+    if(ballY > (canvas.height + 150) ){ // If it goes off the bottom
+      
+      ballReset(); // Reset ball
+      
+      if(lives === 1) { // If that was the player's last life
+        lost = true; // The Player has lost
+      }
+      lives -= 1;  // Remove a life
+    }
+  }
+
+  function paddleEdgeHandling() {
+    // Paddle Edge Handling
+    paddleTopEdgeY = canvas.height - PADDLE_DIST_FROM_EDGE; // Paddle top Edge computed by checking paddle distance from edge constant against screen size
+    paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS; // Bottome edge is just the top plus the paddle thickness constant
+    paddleLeftEdgeX = paddleX; // Left edge is the same as paddleX
+    paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH; // Right edge based on paddle width constant
+
+    if (ballY > paddleTopEdgeY - ballSize && // Below top of paddle - ball size
+        ballY < paddleBottomEdgeY && // above the bottom
+        ballX > paddleLeftEdgeX && // right of left side
+        ballX < paddleRightEdgeX) { // left of right side. -- Basically anywhere on the paddle itself
+      if(held === false && touchActive === true) { // and if the player is holding down
+        held = true; // consider them to be holding the ball
+      }
+      else { // Otherwise
+        paddleHitsBall();
+      }    
+    }
+  }
+
+  function paddleHitsBall() {
+    ballSpeedY *= -1; // Send the ball back upwards at the same speed
+    var centerOfPaddleX = paddleX + PADDLE_WIDTH/2; // compute what the center of the player paddle is
+    var ballDistFromPaddleCenterX = ballX - centerOfPaddleX; // compute the distance from center the ball hit the paddle
+    ballSpeedX = ballDistFromPaddleCenterX * 0.25; // Left/Right speed of ball is determined by distance from center with 1/4 modifier
+
+    if(bricksLeft === 0) { // If that was the last brick in the Grid and the ball has just hit the paddle
+      brickReset(); // Reset the level/Grid
+    }
+  }
+
+  function drawAll() {  // Draw screens based upon running conditions
+    if(title) { // If we're supposed to be at the Start screen
+      drawTitleScreen(); // Then draw it
+    }
+    else if(paused) { // If we're supposed to be Paused
+      drawPauseScreen(); // Draw the pause screen
+    } 
+    else { // Or if we're in normal play
+      drawGamePlay(); // Draw the in game screen
+    }
+  }
+
+  function drawTitleScreen() {
+    colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
+    colorTextFancy("CLICK TO START", 150,260,gradient);// Show start prompt
+    colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show instructions
+    colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show instructions
+    drawBoxedText("FULLSCREEN", 170, 220, 140);  // Draw the fullscreen button
+    drawMenu(); // Draw the Menu
+    drawBricks(); // Draw the bricks
+  }
+
+  function drawPauseScreen() {
+    colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
+    drawBoxedText("RESUME", 190, 150, 96); // Draw the resume button
+    drawBoxedText("FULLSCREEN", 170, 220, 140); // Draw the fullscreen button
+    colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show instructions
+    colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show instructions
+    // colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
+    drawMenu(); // Draw the menu
+  }
+
+  function drawGamePlay() { // Draw the screen while the ball is in motion
+    colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
+    colorRect(paddleX, paddleY, PADDLE_WIDTH,PADDLE_THICKNESS, 'gold');// Draw Paddle
+    drawBricks(); // Draw the Active bricks
+    // colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
+    
+    if (introtime <= 50) { // If we're still in the short period at the start we give the player to get their shit together
+      var lessintrotime = 50 - introtime // figure how much time they have left
+      colorTextFancy("Get Ready " + lessintrotime, 100,400,gradient);// And show how much time they have left
+    }
+    else{ // Otherwise if gameplay has started
+      if(lost){ // If the player lose conditions are true
+        lostTime += 1; // Start counting how much time has passed since they lost
+        if (lostTime > 50) { // And after a short pause
+          colorTextFancy("CLICK TO RESET", 190,400, "grey");// Show that they can reset the game by clicking
+        }
+        showGameOver(); // Show the Game over Screen
+        drawMenu(); // Draw the menu
+      }
+      else { // If the player hasn't lost yet
+        drawMenu(); // Draw the menu
+        // colorTextFancy("Bit's Brick Game - More Lives Added", 100,400,gradient);// Bits Message
+        colorCircle(ballX,ballY, ballSize, "White"); // Draw the Ball
+      }
+    }
+  }
+
+  function drawMenu() {
+    colorTextFancy("Bricks "+bricksLeft, 5,20,gradient);// Draw Bricks Menu
+    colorTextFancy("Level "+level, 280,20,gradient);// Draw Level Menu
+    colorTextFancy("Lives "+lives, 110,20,gradient);// Draw Lives Menu
+    colorTextFancy("Score " + score, 360,20,gradient);// Draw Score Menu
+    if(paused === false && title === false) {
+      colorTextFancy("PAUSE", 200,20,"white");// Draw Score Menu
+    }
+  }
+
+  function drawBricks() { // Draws the bricks for every frame
+    for(eachRow=0;eachRow<BRICK_ROWS;eachRow += 1) { // For Each Column
+      for(eachCol=0;eachCol<BRICK_COLS;eachCol += 1) { // And Each Row
+        arrayIndex = rowColToArrayIndex(eachCol, eachRow); // Compute the Index
+        if(brickGrid[arrayIndex]) { // And if that index reads true
+          colorRect(BRICK_W*eachCol,BRICK_H*eachRow, BRICK_W-BRICK_GAP,BRICK_H-BRICK_GAP, gradient); // Draw a Blue square
+        }
+      }
+    }
+  }
+
+  function showGameOver() {
+    colorTextFancy("GAME OVER", 190,300,gradient);// Show Game Over Screen text
+    gradient = null; // Kill the gradient variable
+    setGradient("grey","grey","grey"); // and set a new gradient for all grey
+  }
+
+  function brickBallCollision() { // Handle results of ball/Brick position overlap --- Really needs the most refactor
+    if (isPointOverBrick(ballLeftSide) && isPointOverBrick(ballRightSide) && isPointOverBrick(ballTopSide) && isPointOverBrick(ballBottomSide)) { // If All 4 sides of ball are within brick(s)
+      handleHardCollision(); // Handle the ball with Hard collision
+    }
+    else {
+      handleSoftCollision(); // Handle the ball with Soft collision
+    }
+  }
+
+  function handleHardCollision() { // Handle collision if all four sides of a ball are inside of a single or multiple bricks
+    
+    if(ballBrickCol >= 0 && ballBrickCol < BRICK_COLS &&
+       ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS) { //==== And if the ball center is on a spot on the grid that holds a brick
+      
+      if(isBrickAtColRow(ballBrickCol,ballBrickRow)) { // if it's an active brick
+        brickGrid[brickIndexUnderBall] = false; // Mark that brick to be deleted
+        bricksLeft--; // Reduce the Bricks left for the Display Counter
+
+        var prevBallX = ballX - ballSpeedX; // Ask the Question: Where was the ball in the last frame?
+        var prevBallY = ballY - ballSpeedY;
+        var prevBrickCol = Math.floor(prevBallX / BRICK_W); // Round the value and calculate which 
+        var prevBrickRow = Math.floor(prevBallY / BRICK_H); // Column and row that corresponds to
+        var bothTestsFailed = true; // Means it hit a corner
+
+        if(prevBrickCol != ballBrickCol) { // if the hit came from a different Column
+          if(isBrickAtColRow(prevBrickCol, ballBrickRow) === false) { // and if it's a valid brick
+            ballSpeedX *= -1; // Bounce the ball on the x axis
+            bothTestsFailed = false; // This was not a corner
+          }
+        }
+        if(prevBrickRow != ballBrickRow) { // if the hit came from a differet Row
+          if(isBrickAtColRow(ballBrickCol, prevBrickRow) === false) { // and if it's a valid brick
+            ballSpeedY *= -1; // Bounce the ball on the y axis
+            bothTestsFailed = false; // This was not a corner
+          }   
+        }
+        if(bothTestsFailed) { // This must be a corner
+          ballSpeedX *= -1; // bounce the ball on both axises
+          ballSpeedY *= -1;
+        }
+      }      
+    }
+  }
+  
+  function handleSoftCollision() { // Handle collision if ball sides come into contact with a brick
+    ballLeftSide = (ballX - ballSize); // Left Edge of Ball
+    ballRightSide = (ballX + ballSize); // Right Edge of Ball
+    ballBottomSide = (ballY + ballSize); // Bottom of Ball
+    ballTopSide = (ballY - ballSize); // Top of Ball
+
+
+    if(ballSpeedX > 0 && isPointOverBrick(ballRightSide, ballY)) { // if it's going right and it's right edge is over a brick
+      pointIndex = isPointOverBrick(ballRightSide, ballY);// return the brickGrid index for that point
+      killBrick(false); // kill a brick with a horizontal hit
+    }
+
+    if(ballSpeedX < 0 && isPointOverBrick(ballLeftSide, ballY)) { // if it's going right and it's right edge is over a brick
+      pointIndex = isPointOverBrick(ballLeftSide, ballY);// return the brickGrid index for that point
+      killBrick(false); // kill a brick with a horizontal hit
+    }
+
+    if(ballSpeedY > 0 && isPointOverBrick(ballX, ballBottomSide)) { // if it's going down and it's bottom edge is over a brick
+      pointIndex = isPointOverBrick(ballX, ballBottomSide);// return the brickGrid index for that point
+      killBrick(true); // kill a brick with a vertical hit
+    }
+
+    if(ballSpeedY < 0 && isPointOverBrick(ballX, ballTopSide) ) {  // if the ball is going up and it's top edge is over a brick or 
+      pointIndex = isPointOverBrick(ballX, ballTopSide); // return the brickGrid index for that point
+      killBrick(true); // kill a brick with a vertical hit
+    }
+  }
+
+  
+
+  function isPointOverBrick(xcoord,ycoord) { // compute if a point is on a valid active brick
+    var pointBrickCol = Math.floor(xcoord / BRICK_W); // Round values to save processor cycles
+    var pointBrickRow = Math.floor(ycoord / BRICK_H); // When computing where the point is on the grid
+    var pointIndexUnderBall = rowColToArrayIndex(pointBrickCol, pointBrickRow); // Calculate whate the brickGrid Index would be
+
+    if(pointBrickCol >= 0 && pointBrickCol < BRICK_COLS &&
+       pointBrickRow >= 0 && pointBrickRow < BRICK_ROWS) { //==== And if the point center is on a spot on the grid that holds a brick
+      if(isBrickAtColRow(pointBrickCol,pointBrickRow)) { // if it's an active brick
+        return pointIndexUnderBall; // return the index for brickGrid array -- which will evaluate to true
+      }
+      else { // or if it's not an active brick
+        return false; // return false so bounce code checks can answer yes/no questions about points
+      }
+    }
+  }
+
+  function isBrickAtColRow(col,row) { // Is this a valid brick in our grid?
+    if(col >= 0 && col < BRICK_COLS && // if is matches our defined constants for grid size
+       row >= 0 && row < BRICK_ROWS) {
+      var brickIndexUnderCoord = rowColToArrayIndex(col, row); // compute the Index
+      return brickGrid[brickIndexUnderCoord]; // Return our index for the array
+    } else {
+      return false; // if its not in our grid, return false
+    }
+  }
+
+  function rowColToArrayIndex(col, row) { // calculate the index (for use with brickGrid Array) within the grid based on position
+    return col + BRICK_COLS * row;
+  }
+
+  function updateMousePos(evt) {
+    var rect = canvas.getBoundingClientRect(); // Get the size of the canvas
+    var root = document.documentElement; // Get the document root from the DOM
+    mouseX = evt.clientX - rect.left - root.scrollLeft; // Get the origin for the Left
+    mouseY = evt.clientY - rect.top - root.scrollTop; // and top sides of the screen
+    paddleX = mouseX / scalex - PADDLE_WIDTH/2; // Place the paddle on screen after factoring the scale
+    // paddleY = mouseY / scaley - PADDLE_THICKNESS/2;
+  }
+
+  function killBrick(vertical) { // Handle the destruction of bricks on the board
+    score += 10; // Increase the player's score by 10
+    if(score % 1000 === 0 && score > 0) { // For every 1000 points added
+      lives += 1; // The player gets an extra life
+    }
+    brickGrid[pointIndex] = false; // Mark that brick to be deleted
+    bricksLeft--; // Reduce the Bricks left for the Display Counter
+    if(vertical) { // If it's true the hit was vertical
+      ballSpeedY *= -1; // Reverse vertical ball speed
+    }
+    else { // Or if it's horizontal instead
+      ballSpeedX *= -1; // Reverse horizontal ball speed
+    }
+  }
+
+  function brickReset() {
+    lostTime = 0; // Reset lost time so game over screen will show "click to restart" after a pause
+    bricksLeft = 0; // Set the counter at top to 0 just in case
+    for(i=0;i < gutter * BRICK_COLS;i += 1) { // for all of the columns in all the rows
+        brickGrid[i] = false; // Set them all to False to clear the board
+    }
+    for(;i<BRICK_COLS * BRICK_ROWS;i += 1) { // for all of the columns in all the rows
+        brickGrid[i] = true; // Set them all to True to set a fresh board
+        bricksLeft++; // Increase the brickLeft counter for each brick placed
+    }
+    level +=1; // Raise the level indicator by 1
+    ballReset(); // Reset the Ball into play
+    gradientChange(); // Change the Brick and Text Color
+  }
+
+  function ballReset() { // Reset the Ball Position only
+    ballX = canvas.width/2;
+    ballY = canvas.height/2;
+  }
+
+  function gameReset() {
+    lost = false; // The player hasn't lost
+    lostTime = 0; // And how long they've lost for is reset
+    level = 0; // Game starts at 0 because starting a level increases counter by 1
+    brickReset(); // Reset the grid
+    score = 0; // Reset the score
+    lives = STARTING_LIVES; // Give the player the initial amount of lives
+  }
+
+  function colorRect(topLeftX,topLeftY, boxWidth,boxHeight, fillColor) { // General canvas Rectangle function
+    canvasContext.fillStyle = fillColor;
+    canvasContext.fillRect(topLeftX,topLeftY, boxWidth,boxHeight);
+  }
+
+  function colorCircle(centerX,centerY, radius, fillColor) { // General canvas Circle function
+    canvasContext.fillStyle = fillColor;
+    canvasContext.beginPath();
+    canvasContext.arc(centerX,centerY, radius, 0,Math.PI*2, true);
+    canvasContext.fill();
+  }
+
+  function colorText(showWords, textX,textY, fillColor) { // General canvas Text function
+    canvasContext.fillStyle = fillColor;
+    canvasContext.fillText(showWords, textX,textY);
+  }
+
+  function colorTextFancy(showWords, textX,textY, fillColor) { // 20px Verdana canvas Text function
+    canvasContext.font="20px Verdana";
+    canvasContext.fillStyle=fillColor;
+    canvasContext.fillText(showWords, textX,textY);
+  }
+
+  function drawBoxedText(text, textX,textY, innerLength) {
+    colorRect((textX - 10),(textY - 30), (innerLength + 10), 45, gradient); // outside box  
+    colorRect((textX - 5),(textY - 25), innerLength,35, 'black'); // inside box
+    colorTextFancy(text, textX,textY, gradient);// text in box
+  }
+
+  function setGradient(color1, color2, color3) { // Empties the gradient and sets a new one with 3 color inputs
+    gradient = null;  // Kill the previous gradient
+    gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height); // Set a new one for our canvas
+    gradient.addColorStop("0",color1); // add all 3 colors
+    gradient.addColorStop("0.3",color2);
+    gradient.addColorStop("0.7",color3);
+  }
 
   function gradientChange() { // Needs Refactoring for More level progression
     if(level === 1) {  // For each level, cycle a gradient
@@ -150,383 +524,6 @@
     else {
       setGradient("gold","gold","gold");
     }
-  }
-
-  function setGradient(color1, color2, color3) { // Empties the gradient and sets a new one with 3 color inputs
-    gradient = null;  // Kill the previous gradient
-    gradient=canvasContext.createLinearGradient(0,0,canvas.width,canvas.height); // Set a new one for our canvas
-    gradient.addColorStop("0",color1); // add all 3 colors
-    gradient.addColorStop("0.3",color2);
-    gradient.addColorStop("0.7",color3);
-  }
-
-  function updateAll() { // General Functions
-    if (introtime <= 50 && title === false && paused === false) { // Give the player time to get ready
-      
-      introtime += 1;
-    }
-    else {
-      moveAll(); // Apply movement to entities
-
-    }
-    
-    resize(); // Check canvas size - if not a match resize
-    
-    brickBallCollision(); // Handle Ball/BrickCollision
-    drawAll(); // Update the screen
-  }
- 
-  function moveAll() {
-    if (title || lost || paused) { // if at the Title, Lost, or Paused Screen, bail out and don't animate movement
-      return;
-    }
-  
-
-
-    if(held === false) {
-      ballX += ballSpeedX;
-      ballY += ballSpeedY;
-
-      if(ballX - ballSize < 0 && ballSpeedX < 0.0) { // Left
-        ballSpeedX *= -1;
-      }
-
-      if(ballX + ballSize > canvas.width  && ballSpeedX > 0.0) { // Right
-        ballSpeedX *= -1;
-      }
-
-      if(ballY - ballSize < 0 && ballSpeedY < 0.0) { // Top
-        ballSpeedY *= -1;
-      }
-
-      if(ballY > (canvas.height + 150) ){ // bottom
-        
-        ballReset(); // if goes off bottom, reset ball
-        
-        if(lives === 1) { // If that was the last one
-          lost = true; // The Player has lost
-        }
-        lives -= 1;  // Remove a life
-        // ballSpeedY *= -1; // Direction reversal
-        
-      }
-     
-      var paddleTopEdgeY = canvas.height - PADDLE_DIST_FROM_EDGE;
-      var paddleBottomEdgeY = paddleTopEdgeY + PADDLE_THICKNESS;
-      var paddleLeftEdgeX = paddleX;
-      var paddleRightEdgeX = paddleLeftEdgeX + PADDLE_WIDTH;
-
-      if (ballY > paddleTopEdgeY - ballSize && // Below top of paddle - ball size
-          ballY < paddleBottomEdgeY && // above the bottom
-          ballX > paddleLeftEdgeX && // right of left side
-          ballX < paddleRightEdgeX) { // left of right side
-        if(held === false && touchActive === true) {
-          held = true;
-        }
-        else {
-          ballSpeedY *= -1;
-
-          var centerOfPaddleX = paddleX + PADDLE_WIDTH/2; // compute what the center of the player paddle is
-          var ballDistFromPaddleCenterX = ballX - centerOfPaddleX; // compute the distance from center the ball hit the paddle
-          ballSpeedX = ballDistFromPaddleCenterX * 0.25; // Left/Right speed of ball is determined by distance from center with 1/3 modifier
-
-          if(bricksLeft === 0) { // If that was the last brick in the Grid
-            brickReset(); // Reset the level/Grid
-          }
-        }
-        
-      }
-    }
-    else {
-      ballX = paddleX + PADDLE_WIDTH / 2;
-      ballY = paddleY - ballSize;
-      ballSpeedY *= -1;
-
-    }
-    
-
-    
-  }
-
-  function drawBoxedText(text, textX,textY, innerLength) {
-    colorRect((textX - 10),(textY - 30), (innerLength + 10), 45, gradient); // outside box  
-    colorRect((textX - 5),(textY - 25), innerLength,35, 'black'); // inside box
-    colorTextFancy(text, textX,textY, gradient);// text in box
-  }
-
-
-  function drawAll() {
-    if(title) {
-      colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
-
-      colorTextFancy("CLICK TO START", 150,260,gradient);// Show  Screen text
-      colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show  Screen text
-      colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show  Screen text
-
-      drawBoxedText("FULLSCREEN", 170, 220, 140);
-      drawMenu();
-      drawBricks();
-    }
-    else if(paused) {
-
-      colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
-      drawBoxedText("RESUME", 190, 150, 96);
-      drawBoxedText("FULLSCREEN", 170, 220, 140);
-      
-
-
-      
-      colorTextFancy("HOLD TO CATCH BALL", 130,290,gradient);// Show Game Over Screen text
-      colorTextFancy("EXTRA LIFE EVERY 1000 POINTS", 85,410,gradient);// Show Game Over Screen text
-      // colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
-      drawMenu();
-    } 
-    else {
-      colorRect(0,0, canvas.width,canvas.height, 'black'); // clear screen
-      colorRect(paddleX, paddleY, PADDLE_WIDTH,PADDLE_THICKNESS, 'gold');// Draw Paddle
-      drawBricks();
-      // colorText(Math.floor(mouseX/scalex)+","+Math.floor(mouseY/scaley), mouseX/scalex,mouseY/scaley, 'yellow');// Draw Debug Paddle Text
-      
-      if (introtime <= 50) {
-        var lessintrotime = 50 - introtime
-        colorTextFancy("Get Ready " + lessintrotime, 100,400,gradient);// Draw Debug Paddle Text
-      }
-      else{
-        if(lost){ // If the player lose conditions are true
-          lostTime += 1;
-          if (lostTime > 50) {
-            colorTextFancy("CLICK TO RESET", 190,400, "grey");// Show Game Over Screen text
-          }
-          showGameOver();
-          drawMenu();
-        }
-        else { // If the player hasn't lost yet
-          
-          drawMenu();
-          // colorTextFancy("Bit's Brick Game - More Lives Added", 100,400,gradient);// Bits Message
-          colorCircle(ballX,ballY, ballSize, "White"); // Draw the Ball
-        }
-      }
-    }
-  }
-
-  function drawMenu() {
-    colorTextFancy("Bricks "+bricksLeft, 5,20,gradient);// Draw Bricks Menu
-    colorTextFancy("Level "+level, 280,20,gradient);// Draw Level Menu
-    colorTextFancy("Lives "+lives, 110,20,gradient);// Draw Lives Menu
-    colorTextFancy("Score " + score, 360,20,gradient);// Draw Score Menu
-    if(paused === false && title === false) {
-      colorTextFancy("PAUSE", 200,20,"white");// Draw Score Menu
-    }
-    
-  }
-
-  function showGameOver() {
-    colorTextFancy("GAME OVER", 190,300,gradient);// Show Game Over Screen text
-    gradient = null; // Kill the gradient variable
-    setGradient("grey","grey","grey"); // and set a new gradient for all grey
-
-  }
-  
-
-  function brickBallCollision() { // Handle results of ball/Brick position overlap
-
-    // ---- BRICK DECTECTION/HANDLING
-
-    // isPointOverBrick(ballLeftSide) && isPointOverBrick(ballRightSide) && isPointOverBrick(ballTopSide) && isPointOverBrick(ballBottomSide)
-
-    if (isPointOverBrick(ballLeftSide) && isPointOverBrick(ballRightSide) && isPointOverBrick(ballTopSide) && isPointOverBrick(ballBottomSide)) {
-      var ballBrickCol = Math.floor(ballX / BRICK_W); // Round values to save processor cycles
-      var ballBrickRow = Math.floor(ballY / BRICK_H); // When computing where the ball center is on the grid
-      var brickIndexUnderBall = rowColToArrayIndex(ballBrickCol, ballBrickRow); // Calculate whate the brickGrid Index would be
-      
-      if(ballBrickCol >= 0 && ballBrickCol < BRICK_COLS &&
-         ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS) { //==== And if the ball center is on a spot on the grid that holds a brick
-        
-        if(isBrickAtColRow(ballBrickCol,ballBrickRow)) { // if it's an active brick
-          brickGrid[brickIndexUnderBall] = false; // Mark that brick to be deleted
-          bricksLeft--; // Reduce the Bricks left for the Display Counter
-
-          // ---- BOUNCE CODE
-
-
-          var prevBallX = ballX - ballSpeedX; // Ask the Question: Where was the ball in the last frame?
-          var prevBallY = ballY - ballSpeedY;
-          var prevBrickCol = Math.floor(prevBallX / BRICK_W); // Round the value and calculate which 
-          var prevBrickRow = Math.floor(prevBallY / BRICK_H); // Column and row that corresponds to
-
-          var bothTestsFailed = true; // Means it hit a corner
-
-          if(prevBrickCol != ballBrickCol) { // if the hit came from a different Column
-            if(isBrickAtColRow(prevBrickCol, ballBrickRow) === false) { // and if it's a valid brick
-              ballSpeedX *= -1; // Bounce the ball on the x axis
-              bothTestsFailed = false; // This was not a corner
-            }
-            
-          }
-          if(prevBrickRow != ballBrickRow) { // if the hit came from a differet Row
-            if(isBrickAtColRow(ballBrickCol, prevBrickRow) === false) { // and if it's a valid brick
-              ballSpeedY *= -1; // Bounce the ball on the y axis
-              bothTestsFailed = false; // This was not a corner
-            }
-            
-          }
-
-          if(bothTestsFailed) { // This must be a corner
-            ballSpeedX *= -1; // bounce the ball on both axises
-            ballSpeedY *= -1;
-          }
-        }      
-      }
-
-    }
-    else {
-      var ballLeftSide = (ballX - ballSize); // Left Edge of Ball
-      var ballRightSide = (ballX + ballSize); // Right Edge of Ball
-      var ballBottomSide = (ballY + ballSize); // Bottom of Ball
-      var ballTopSide = (ballY - ballSize); // Top of Ball
-
-
-      if(ballSpeedX > 0 && isPointOverBrick(ballRightSide, ballY)) { // if it's going right and it's right edge is over a brick
-        pointIndex = isPointOverBrick(ballRightSide, ballY);
-        killBrick(false);
-      }
-
-      if(ballSpeedX < 0 && isPointOverBrick(ballLeftSide, ballY)) { // if it's going right and it's right edge is over a brick
-        pointIndex = isPointOverBrick(ballLeftSide, ballY);
-        killBrick(false);
-      }
-
-      if(ballSpeedY > 0 && isPointOverBrick(ballX, ballBottomSide)) { // if it's going down and it's bottom edge is over a brick
-        pointIndex = isPointOverBrick(ballX, ballBottomSide);
-        killBrick(true);
-      }
-
-      if(ballSpeedY < 0 && isPointOverBrick(ballX, ballTopSide) ) {  // if the ball is going up and it's top edge is over a brick or 
-        pointIndex = isPointOverBrick(ballX, ballTopSide);
-        killBrick(true);
-      }
-    }
-  }
-
-  function isPointOverBrick(xcoord,ycoord) { // compute if a point is on a valid active brick
-    var pointBrickCol = Math.floor(xcoord / BRICK_W); // Round values to save processor cycles
-    var pointBrickRow = Math.floor(ycoord / BRICK_H); // When computing where the point is on the grid
-    var pointIndexUnderBall = rowColToArrayIndex(pointBrickCol, pointBrickRow); // Calculate whate the brickGrid Index would be
-
-    if(pointBrickCol >= 0 && pointBrickCol < BRICK_COLS &&
-       pointBrickRow >= 0 && pointBrickRow < BRICK_ROWS) { //==== And if the point center is on a spot on the grid that holds a brick
-      if(isBrickAtColRow(pointBrickCol,pointBrickRow)) { // if it's an active brick
-        return pointIndexUnderBall;
-      }
-      else {
-        return false;
-      }
-    }
-  }
-
-  function isBrickAtColRow(col,row) { // Is this a valid brick in our grid?
-    if(col >= 0 && col < BRICK_COLS && // if is matches our defined constants for grid size
-       row >= 0 && row < BRICK_ROWS) {
-      var brickIndexUnderCoord = rowColToArrayIndex(col, row); // compute the Index
-      return brickGrid[brickIndexUnderCoord]; // Return our index for the array
-    } else {
-      return false; // if its not in our grid, return false
-    }
-  }
-
-  function rowColToArrayIndex(col, row) { // calculate the index within the column array based on position
-    return col + BRICK_COLS * row;
-  }
-
-
-
-
-
-  function killBrick(vertical) {
-    score += 10;
-    if(score % 1000 === 0 && score > 0) {
-      lives += 1;
-    }
-    brickGrid[pointIndex] = false; // Mark that brick to be deleted
-    bricksLeft--; // Reduce the Bricks left for the Display Counter
-    if(vertical) {
-      ballSpeedY *= -1; // Reverse vertical ball speed
-    }
-    else {
-      ballSpeedX *= -1; // Reverse horizontal ball speed
-    }
-  }
-
-
-  
-
-
-
-  function drawBricks() { // Draws the bricks for every frame
-    for(eachRow=0;eachRow<BRICK_ROWS;eachRow += 1) { // For Each Column
-      for(eachCol=0;eachCol<BRICK_COLS;eachCol += 1) { // And Each Row
-        arrayIndex = rowColToArrayIndex(eachCol, eachRow); // Compute the Index
-        if(brickGrid[arrayIndex]) { // And if that index reads true
-          colorRect(BRICK_W*eachCol,BRICK_H*eachRow, BRICK_W-BRICK_GAP,BRICK_H-BRICK_GAP, gradient); // Draw a Blue square
-        }
-      }
-    }
-  }
-
-  function updateMousePos(evt) {
-    var rect = canvas.getBoundingClientRect(); // Get the size of the canvas
-    var root = document.documentElement; // Get the document root from the DOM
-    mouseX = evt.clientX - rect.left - root.scrollLeft; // Get the origin for the Left
-    mouseY = evt.clientY - rect.top - root.scrollTop; // and top sides of the screen
-    paddleX = mouseX / scalex - PADDLE_WIDTH/2; // Place the paddle on screen after factoring the scale
-    // paddleY = mouseY / scaley - PADDLE_THICKNESS/2;
-  }
-
-  function brickReset() {
-    lostTime = 0;
-    bricksLeft = 0;
-    for(i=0;i < gutter * BRICK_COLS;i += 1) { // for all of the columns in all the rows
-        brickGrid[i] = false;
-    }
-    for(;i<BRICK_COLS * BRICK_ROWS;i += 1) { // for all of the columns in all the rows
-        brickGrid[i] = true;
-        bricksLeft++;
-    }
-    level +=1;
-    ballReset(); // Reset the Ball into play
-    gradientChange(); // Change the Brick and Text Color
-    
-  }
-
-  function ballReset() { // Reset the Ball Position only
-    ballX = canvas.width/2;
-    ballY = canvas.height/2;
-  }
-
-
-
-  function colorRect(topLeftX,topLeftY, boxWidth,boxHeight, fillColor) { // General canvas Rectangle function
-    canvasContext.fillStyle = fillColor;
-    canvasContext.fillRect(topLeftX,topLeftY, boxWidth,boxHeight);
-  }
-
-  function colorCircle(centerX,centerY, radius, fillColor) { // General canvas Circle function
-    canvasContext.fillStyle = fillColor;
-    canvasContext.beginPath();
-    canvasContext.arc(centerX,centerY, radius, 0,Math.PI*2, true);
-    canvasContext.fill();
-  }
-
-  function colorText(showWords, textX,textY, fillColor) { // General canvas Text function
-    canvasContext.fillStyle = fillColor;
-    canvasContext.fillText(showWords, textX,textY);
-  }
-
-  function colorTextFancy(showWords, textX,textY, fillColor) { // 20px Verdana canvas Text function
-    canvasContext.font="20px Verdana";
-    canvasContext.fillStyle=fillColor;
-    canvasContext.fillText(showWords, textX,textY);
   }
 
   function resize() { // resizes the canvas to the window width and height
