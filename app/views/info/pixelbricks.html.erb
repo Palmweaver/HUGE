@@ -4,7 +4,7 @@
   canvas { display:block; } /* To remove the scrollbars */
 </style>
 <div>
-  <canvas id="lifeCanvas" width="500" height="500"></canvas>
+  <canvas id="lifeCanvas" width="500" height="500"></canvas> <!-- canvas is square to keep 4 player even in play space, even if aspect ratio is off -->
 </div>
 <script type="text/javascript">
   "use strict";
@@ -126,7 +126,7 @@
 
   // window.addEventListener('deviceorientation', handleOrientationEvent, false); // Handle device orientation for mobile devices
 
-// Other setup Code
+//---------- Other setup Code ------------
 
   var flip = document.getElementsByClassName("canvasflip"); // Get rid of the BootStrap menu 
   for (f = 0; f < flip.length; f += 1) { // For all elements with the class canvasflip
@@ -138,7 +138,7 @@
 
 // ------ Setup Code End -------
 
-  function updateAll() { // General Functions 
+  function updateAll() { // Primary Function containing all game tasks
     if (introtime <= 50 && title === false && paused === false) { // Give the player time to get ready
       introtime += 1; // Add 1 to the amount of time for the intro
     }
@@ -148,9 +148,10 @@
     
     resize(); // Check canvas size - if not a match resize
     
-    brickBallCollision(); // Handle Ball/BrickCollision
     drawAll(); // Update the screen
   }
+
+//  -------- Movement and Physics Section
 
   function moveAll() { 
     if (title || lost || paused) { // if at the Title, Lost, or Paused Screen
@@ -170,8 +171,9 @@
   function playBall() { // Handle ball movement
     ballX += ballSpeedX; // Move ball 1 increment of current speed vertically
     ballY += ballSpeedY; // Move ball 1 increment of current speed horizontally
-    screenEdgeHandling();
-    paddleEdgeHandling();
+    screenEdgeHandling();  // Handle the ball hitting the Edges of the Screen
+    paddleEdgeHandling();  // Handle the ball hitting the paddle
+    brickBallCollision(); // Handle Ball/BrickCollision
   }
 
   function screenEdgeHandling() {
@@ -212,7 +214,7 @@
         held = true; // consider them to be holding the ball
       }
       else { // Otherwise
-        paddleHitsBall();
+        paddleHitsBall(); // The Player has hit the ball
       }    
     }
   }
@@ -228,9 +230,102 @@
     }
   }
 
+  function brickBallCollision() { // Handle results of ball/Brick position overlap 
+    if (isPointOverBrick(ballLeftSide) && isPointOverBrick(ballRightSide) && isPointOverBrick(ballTopSide) && isPointOverBrick(ballBottomSide)) { // If All 4 sides of ball are within brick(s)
+      handleHardCollision(); // Handle the ball with Hard collision
+    }
+    else {
+      handleSoftCollision(); // Handle the ball with Soft collision
+    }
+  }
+
+  function handleHardCollision() { // Handle collision if all four sides of a ball are inside of a single or multiple bricks
+    
+    if(ballBrickCol >= 0 && ballBrickCol < BRICK_COLS &&
+       ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS) { //==== And if the ball center is on a spot on the grid that holds a brick
+      
+      if(isBrickAtColRow(ballBrickCol,ballBrickRow)) { // if it's an active brick
+        brickGrid[brickIndexUnderBall] = false; // Mark that brick to be deleted
+        bricksLeft--; // Reduce the Bricks left for the Display Counter
+        score += 10; // Increase the player's score by 10
+        if(score % 1000 === 0 && score > 0) { // For every 1000 points added
+          lives += 1; // The player gets an extra life
+        }
+
+        var prevBallX = ballX - ballSpeedX; // Ask the Question: Where was the ball in the last frame?
+        var prevBallY = ballY - ballSpeedY;
+        var prevBrickCol = Math.floor(prevBallX / BRICK_W); // Round the value and calculate which 
+        var prevBrickRow = Math.floor(prevBallY / BRICK_H); // Column and row that corresponds to
+
+        var bothTestsFailed = true; // Means it hit a corner in the Next if Tree
+
+        if(prevBrickCol != ballBrickCol) { // if the hit came from a different Column
+          if(isBrickAtColRow(prevBrickCol, ballBrickRow) === false) { // and if it's a valid brick
+            ballSpeedX *= -1; // Bounce the ball on the x axis
+            bothTestsFailed = false; // This was not a corner
+          }
+        }
+        if(prevBrickRow != ballBrickRow) { // if the hit came from a differet Row
+          if(isBrickAtColRow(ballBrickCol, prevBrickRow) === false) { // and if it's a valid brick
+            ballSpeedY *= -1; // Bounce the ball on the y axis
+            bothTestsFailed = false; // This was not a corner
+          }   
+        }
+        if(bothTestsFailed) { // This must be a corner
+          ballSpeedX *= -1; // bounce the ball on both axises
+          ballSpeedY *= -1;
+        }
+      }      
+    }
+  }
+  
+  function handleSoftCollision() { // Handle collision if ball sides come into contact with a brick
+    ballLeftSide = (ballX - ballSize); // Left Edge of Ball
+    ballRightSide = (ballX + ballSize); // Right Edge of Ball
+    ballBottomSide = (ballY + ballSize); // Bottom of Ball
+    ballTopSide = (ballY - ballSize); // Top of Ball
+
+    if(ballSpeedX > 0 && isPointOverBrick(ballRightSide, ballY)) { // if it's going right and it's right edge is over a brick
+      pointIndex = isPointOverBrick(ballRightSide, ballY);// return the brickGrid index for that point
+      killBrick(false); // kill a brick with a horizontal hit
+    }
+
+    if(ballSpeedX < 0 && isPointOverBrick(ballLeftSide, ballY)) { // if it's going right and it's right edge is over a brick
+      pointIndex = isPointOverBrick(ballLeftSide, ballY);// return the brickGrid index for that point
+      killBrick(false); // kill a brick with a horizontal hit
+    }
+
+    if(ballSpeedY > 0 && isPointOverBrick(ballX, ballBottomSide)) { // if it's going down and it's bottom edge is over a brick
+      pointIndex = isPointOverBrick(ballX, ballBottomSide);// return the brickGrid index for that point
+      killBrick(true); // kill a brick with a vertical hit
+    }
+
+    if(ballSpeedY < 0 && isPointOverBrick(ballX, ballTopSide) ) {  // if the ball is going up and it's top edge is over a brick or 
+      pointIndex = isPointOverBrick(ballX, ballTopSide); // return the brickGrid index for that point
+      killBrick(true); // kill a brick with a vertical hit
+    }
+  }
+
+  function killBrick(vertical) { // Handle the destruction of bricks on the board for soft collisions -- True/False input for vertical/horizontal
+    score += 10; // Increase the player's score by 10
+    if(score % 1000 === 0 && score > 0) { // For every 1000 points added
+      lives += 1; // The player gets an extra life
+    }
+    brickGrid[pointIndex] = false; // Mark that brick to be deleted
+    bricksLeft--; // Reduce the Bricks left for the Display Counter
+    if(vertical) { // If it's true the hit was vertical
+      ballSpeedY *= -1; // Reverse vertical ball speed
+    }
+    else { // Or if it's horizontal instead
+      ballSpeedX *= -1; // Reverse horizontal ball speed
+    }
+  }
+
+  //  -------- Screen Drawing Section
+
   function drawAll() {  // Draw screens based upon running conditions
     if(title) { // If we're supposed to be at the Start screen
-      drawTitleScreen(); // Then draw it
+      drawTitleScreen(); // Then draw title screen
     }
     else if(paused) { // If we're supposed to be Paused
       drawPauseScreen(); // Draw the pause screen
@@ -293,7 +388,7 @@
     colorTextFancy("Lives "+lives, 110,20,gradient);// Draw Lives Menu
     colorTextFancy("Score " + score, 360,20,gradient);// Draw Score Menu
     if(paused === false && title === false) {
-      colorTextFancy("PAUSE", 200,20,"white");// Draw Score Menu
+      colorTextFancy("PAUSE", 200,20,"white");// Draw Pause button
     }
   }
 
@@ -302,7 +397,7 @@
       for(eachCol=0;eachCol<BRICK_COLS;eachCol += 1) { // And Each Row
         arrayIndex = rowColToArrayIndex(eachCol, eachRow); // Compute the Index
         if(brickGrid[arrayIndex]) { // And if that index reads true
-          colorRect(BRICK_W*eachCol,BRICK_H*eachRow, BRICK_W-BRICK_GAP,BRICK_H-BRICK_GAP, gradient); // Draw a Blue square
+          colorRect(BRICK_W*eachCol,BRICK_H*eachRow, BRICK_W-BRICK_GAP,BRICK_H-BRICK_GAP, gradient); // Draw a Brick
         }
       }
     }
@@ -314,80 +409,47 @@
     setGradient("grey","grey","grey"); // and set a new gradient for all grey
   }
 
-  function brickBallCollision() { // Handle results of ball/Brick position overlap 
-    if (isPointOverBrick(ballLeftSide) && isPointOverBrick(ballRightSide) && isPointOverBrick(ballTopSide) && isPointOverBrick(ballBottomSide)) { // If All 4 sides of ball are within brick(s)
-      handleHardCollision(); // Handle the ball with Hard collision
+//  -------- Game Control and Input Section
+
+  function brickReset() {
+    lostTime = 0; // Reset lost time so game over screen will show "click to restart" after a pause
+    bricksLeft = 0; // Set the counter at top to 0 just in case
+    for(i=0;i < gutter * BRICK_COLS;i += 1) { // for all of the columns in all the rows
+        brickGrid[i] = false; // Set them all to False to clear the board
     }
-    else {
-      handleSoftCollision(); // Handle the ball with Soft collision
+    for(;i<BRICK_COLS * BRICK_ROWS;i += 1) { // for all of the columns in all the rows
+        brickGrid[i] = true; // Set them all to True to set a fresh board
+        bricksLeft++; // Increase the brickLeft counter for each brick placed
     }
+    level +=1; // Raise the level indicator by 1
+    ballReset(); // Reset the Ball into play
+    gradientChange(); // Change the Brick and Text Color
   }
 
-  function handleHardCollision() { // Handle collision if all four sides of a ball are inside of a single or multiple bricks
-    
-    if(ballBrickCol >= 0 && ballBrickCol < BRICK_COLS &&
-       ballBrickRow >= 0 && ballBrickRow < BRICK_ROWS) { //==== And if the ball center is on a spot on the grid that holds a brick
-      
-      if(isBrickAtColRow(ballBrickCol,ballBrickRow)) { // if it's an active brick
-        brickGrid[brickIndexUnderBall] = false; // Mark that brick to be deleted
-        bricksLeft--; // Reduce the Bricks left for the Display Counter
-        score += 10; // Increase the player's score by 10
-        if(score % 1000 === 0 && score > 0) { // For every 1000 points added
-          lives += 1; // The player gets an extra life
-        }
-
-        var prevBallX = ballX - ballSpeedX; // Ask the Question: Where was the ball in the last frame?
-        var prevBallY = ballY - ballSpeedY;
-        var prevBrickCol = Math.floor(prevBallX / BRICK_W); // Round the value and calculate which 
-        var prevBrickRow = Math.floor(prevBallY / BRICK_H); // Column and row that corresponds to
-        var bothTestsFailed = true; // Means it hit a corner
-
-        if(prevBrickCol != ballBrickCol) { // if the hit came from a different Column
-          if(isBrickAtColRow(prevBrickCol, ballBrickRow) === false) { // and if it's a valid brick
-            ballSpeedX *= -1; // Bounce the ball on the x axis
-            bothTestsFailed = false; // This was not a corner
-          }
-        }
-        if(prevBrickRow != ballBrickRow) { // if the hit came from a differet Row
-          if(isBrickAtColRow(ballBrickCol, prevBrickRow) === false) { // and if it's a valid brick
-            ballSpeedY *= -1; // Bounce the ball on the y axis
-            bothTestsFailed = false; // This was not a corner
-          }   
-        }
-        if(bothTestsFailed) { // This must be a corner
-          ballSpeedX *= -1; // bounce the ball on both axises
-          ballSpeedY *= -1;
-        }
-      }      
-    }
+  function ballReset() { // Reset the Ball Position only
+    ballX = canvas.width/2;
+    ballY = canvas.height/2;
   }
-  
-  function handleSoftCollision() { // Handle collision if ball sides come into contact with a brick
-    ballLeftSide = (ballX - ballSize); // Left Edge of Ball
-    ballRightSide = (ballX + ballSize); // Right Edge of Ball
-    ballBottomSide = (ballY + ballSize); // Bottom of Ball
-    ballTopSide = (ballY - ballSize); // Top of Ball
 
-    if(ballSpeedX > 0 && isPointOverBrick(ballRightSide, ballY)) { // if it's going right and it's right edge is over a brick
-      pointIndex = isPointOverBrick(ballRightSide, ballY);// return the brickGrid index for that point
-      killBrick(false); // kill a brick with a horizontal hit
-    }
-
-    if(ballSpeedX < 0 && isPointOverBrick(ballLeftSide, ballY)) { // if it's going right and it's right edge is over a brick
-      pointIndex = isPointOverBrick(ballLeftSide, ballY);// return the brickGrid index for that point
-      killBrick(false); // kill a brick with a horizontal hit
-    }
-
-    if(ballSpeedY > 0 && isPointOverBrick(ballX, ballBottomSide)) { // if it's going down and it's bottom edge is over a brick
-      pointIndex = isPointOverBrick(ballX, ballBottomSide);// return the brickGrid index for that point
-      killBrick(true); // kill a brick with a vertical hit
-    }
-
-    if(ballSpeedY < 0 && isPointOverBrick(ballX, ballTopSide) ) {  // if the ball is going up and it's top edge is over a brick or 
-      pointIndex = isPointOverBrick(ballX, ballTopSide); // return the brickGrid index for that point
-      killBrick(true); // kill a brick with a vertical hit
-    }
+  function gameReset() {
+    lost = false; // The player hasn't lost
+    lostTime = 0; // And how long they've lost for is reset
+    level = 0; // Game starts at 0 because starting a level increases counter by 1
+    brickReset(); // Reset the grid
+    score = 0; // Reset the score
+    lives = STARTING_LIVES; // Give the player the initial amount of lives
   }
+
+  function updateMousePos(evt) {
+    var rect = canvas.getBoundingClientRect(); // Get the size of the canvas
+    var root = document.documentElement; // Get the document root from the DOM
+    mouseX = evt.clientX - rect.left - root.scrollLeft; // Get the origin for the Left
+    mouseY = evt.clientY - rect.top - root.scrollTop; // and top sides of the screen
+    paddleX = mouseX / scalex - PADDLE_WIDTH/2; // Place the paddle on screen after factoring the scale
+    // paddleY = mouseY / scaley - PADDLE_THICKNESS/2; // Currently one dimensional gameplay
+  }
+
+  // Game Specific helper functions
 
   function isPointOverBrick(xcoord,ycoord) { // compute if a point is on a valid active brick
     var pointBrickCol = Math.floor(xcoord / BRICK_W); // Round values to save processor cycles
@@ -418,50 +480,6 @@
   function rowColToArrayIndex(col, row) { // calculate the index (for use with brickGrid Array) within the grid based on position
     return col + BRICK_COLS * row;
   }
-
-  function updateMousePos(evt) {
-    var rect = canvas.getBoundingClientRect(); // Get the size of the canvas
-    var root = document.documentElement; // Get the document root from the DOM
-    mouseX = evt.clientX - rect.left - root.scrollLeft; // Get the origin for the Left
-    mouseY = evt.clientY - rect.top - root.scrollTop; // and top sides of the screen
-    paddleX = mouseX / scalex - PADDLE_WIDTH/2; // Place the paddle on screen after factoring the scale
-    // paddleY = mouseY / scaley - PADDLE_THICKNESS/2; // Currently one dimensional gameplay
-  }
-
-  // function handleOrientationEvent(e) {
-  //   alpha = e.alpha/20 / 10; // Get the 3 orientation axis
-  //   beta = e.beta/20 / 10;
-  //   gamma = e.gamma/20 / 10;
-  //   if (alpha < 0) {
-  //     alpha *= -1;
-  //   }
-  //   if (beta < 0) {
-  //     beta *= -1;
-  //   }
-  //   if (gamma < 0) {
-  //     gamma *= -1;
-  //   }
-  //   if (alpha > 0.6) {
-  //     alpha = 0.6;
-  //   }
-  //   if (beta > 0.6) {
-  //     beta = 0.6;
-  //   }
-  //   if (gamma > 0.6) {
-  //     gamma = 0.6;
-  //   }
-  //   if (alpha < 0.1) {
-  //     alpha = 0.1
-  //   }
-  //   if (beta < 0.1) {
-  //     beta = 0.1
-  //   }
-  //   if (gamma < 0.1) {
-  //     gamma = 0.1
-  //   }
-  //   colorTextFancy(alpha + " " + beta + " " + gamma + " ", 50, 200, "green");
-  //   gradientChange();
-  // };
 
   function setGradient(color1, color2, color3) { // Empties the gradient and sets a new one with 3 color inputs
     gradient = null;  // Kill the previous gradient
@@ -497,50 +515,6 @@
     else {
       setGradient("gold","gold","gold");
     }
-  }
-
-  function killBrick(vertical) { // Handle the destruction of bricks on the board for soft collisions
-    score += 10; // Increase the player's score by 10
-    if(score % 1000 === 0 && score > 0) { // For every 1000 points added
-      lives += 1; // The player gets an extra life
-    }
-    brickGrid[pointIndex] = false; // Mark that brick to be deleted
-    bricksLeft--; // Reduce the Bricks left for the Display Counter
-    if(vertical) { // If it's true the hit was vertical
-      ballSpeedY *= -1; // Reverse vertical ball speed
-    }
-    else { // Or if it's horizontal instead
-      ballSpeedX *= -1; // Reverse horizontal ball speed
-    }
-  }
-
-  function brickReset() {
-    lostTime = 0; // Reset lost time so game over screen will show "click to restart" after a pause
-    bricksLeft = 0; // Set the counter at top to 0 just in case
-    for(i=0;i < gutter * BRICK_COLS;i += 1) { // for all of the columns in all the rows
-        brickGrid[i] = false; // Set them all to False to clear the board
-    }
-    for(;i<BRICK_COLS * BRICK_ROWS;i += 1) { // for all of the columns in all the rows
-        brickGrid[i] = true; // Set them all to True to set a fresh board
-        bricksLeft++; // Increase the brickLeft counter for each brick placed
-    }
-    level +=1; // Raise the level indicator by 1
-    ballReset(); // Reset the Ball into play
-    gradientChange(); // Change the Brick and Text Color
-  }
-
-  function ballReset() { // Reset the Ball Position only
-    ballX = canvas.width/2;
-    ballY = canvas.height/2;
-  }
-
-  function gameReset() {
-    lost = false; // The player hasn't lost
-    lostTime = 0; // And how long they've lost for is reset
-    level = 0; // Game starts at 0 because starting a level increases counter by 1
-    brickReset(); // Reset the grid
-    score = 0; // Reset the score
-    lives = STARTING_LIVES; // Give the player the initial amount of lives
   }
 
   // Generalized helper functions
@@ -587,7 +561,7 @@
     }
   }
 
-  function fullscreen(){ // Requests FullScreen from the browser on the first click
+  function fullscreen(){ // Requests FullScreen from the browser
      if(canvas.webkitRequestFullScreen) { // And if this is Chrome or Safari
          canvas.webkitRequestFullScreen(); // Go for the webkit fullscreen Request
      }
@@ -595,5 +569,42 @@
        canvas.mozRequestFullScreen(); // Else we'll try the Mozilla fullscreen Request
     }     
   }
+
+  // -------- Under Construction ------------
+
+  // function handleOrientationEvent(e) {
+  //   alpha = e.alpha/20 / 10; // Get the 3 orientation axis
+  //   beta = e.beta/20 / 10;
+  //   gamma = e.gamma/20 / 10;
+  //   if (alpha < 0) {
+  //     alpha *= -1;
+  //   }
+  //   if (beta < 0) {
+  //     beta *= -1;
+  //   }
+  //   if (gamma < 0) {
+  //     gamma *= -1;
+  //   }
+  //   if (alpha > 0.6) {
+  //     alpha = 0.6;
+  //   }
+  //   if (beta > 0.6) {
+  //     beta = 0.6;
+  //   }
+  //   if (gamma > 0.6) {
+  //     gamma = 0.6;
+  //   }
+  //   if (alpha < 0.1) {
+  //     alpha = 0.1
+  //   }
+  //   if (beta < 0.1) {
+  //     beta = 0.1
+  //   }
+  //   if (gamma < 0.1) {
+  //     gamma = 0.1
+  //   }
+  //   colorTextFancy(alpha + " " + beta + " " + gamma + " ", 50, 200, "green");
+  //   gradientChange();
+  // };
 
 </script>
